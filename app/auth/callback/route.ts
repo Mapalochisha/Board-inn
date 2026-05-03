@@ -1,1 +1,8 @@
-export async function GET() { return Response.redirect('/') }
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url)
+  return NextResponse.redirect(new URL('/', requestUrl.origin))
+}
