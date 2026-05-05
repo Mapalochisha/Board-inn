@@ -3,7 +3,7 @@ import { Search, Calendar, Home } from "lucide-react";
 import Link from "next/link";
 
 async function getRecentProperties() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/properties?limit=6`, { cache: 'no-store' });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/properties?limit=6`, { cache: 'no-store' });
   if (!res.ok) return [];
   const { data } = await res.json();
   return data || [];
