@@ -65,7 +65,7 @@ export async function PATCH(
 
     if (!result.success) {
       return NextResponse.json(
-        { data: null, error: result.error.errors[0].message },
+        { data: null, error: result.error.issues[0].message },
         { status: 400 }
       );
     }
