@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     .from("properties")
     .select(`
       id, title, city, district, cover_image_url,
-      units!inner (
+      units (
         price_per_month,
         is_available,
         unit_type,
