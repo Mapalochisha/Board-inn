@@ -17,8 +17,8 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="bg-gradient-to-r from-[#0F2E1E] to-[#1A6B4A] py-20 px-6 text-white text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-6">Find Your Perfect Student Space</h1>
-        <div className="max-w-xl mx-auto flex gap-2">
-            <input type="text" placeholder="Enter city..." className="flex-1 px-4 py-3 rounded-lg text-black" />
+        <div className="max-w-xl mx-auto flex gap-2 overflow-hidden">
+            <input type="text" placeholder="Enter city..." className="flex-1 min-w-0 px-4 py-3 rounded-lg text-black" />
             <button className="bg-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-700">Search</button>
         </div>
       </section>
