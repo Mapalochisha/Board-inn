@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { PropertyCardSkeleton } from "@/components/listings/PropertyCardSkeleton";
 
-export default function ListingsPage() {
+function ListingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState([]);
@@ -79,4 +79,8 @@ export default function ListingsPage() {
       </main>
     </div>
   );
+}
+
+export default function ListingsPage() {
+    return <Suspense fallback={<div>Loading...</div>}><ListingsContent /></Suspense>;
 }
