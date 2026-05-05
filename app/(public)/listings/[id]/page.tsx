@@ -53,7 +53,7 @@ export default async function PropertyPage({ params }: { params: { id: string } 
 
       <section className="bg-gray-50 p-6 rounded-lg">
         <h2 className="text-xl font-bold mb-4">Book a Viewing</h2>
-        <div className="bg-white border p-4 rounded-lg">Viewing slot picker coming in Stage 7.</div>
+        <div className="bg-white border p-4 rounded-lg">Viewing slot picker arriving in Stage 7.</div>
       </section>
     </main>
   );
