@@ -1,6 +1,7 @@
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { Search, Calendar, Home } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 async function getRecentProperties() {
   const supabase = createClient()
