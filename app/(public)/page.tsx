@@ -3,10 +3,16 @@ import { Search, Calendar, Home } from "lucide-react";
 import Link from "next/link";
 
 async function getRecentProperties() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/properties?limit=6`, { cache: 'no-store' });
-  if (!res.ok) return [];
-  const { data } = await res.json();
-  return data || [];
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('properties')
+    .select('id, title, city, district, cover_image_url, images, status')
+    .eq('status', 'published')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  if (error) return []
+  return data || []
 }
 
 export default async function HomePage() {
