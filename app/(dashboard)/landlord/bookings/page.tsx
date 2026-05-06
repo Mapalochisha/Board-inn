@@ -46,7 +46,7 @@ export default function LandlordBookingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {bs.map((b: any) => (
+                {(bs as any[]).map((b: any) => (
                   <TableRow key={b.id}>
                     <TableCell>{b.renter.full_name}</TableCell>
                     <TableCell>{new Date(b.slot.slot_date).toLocaleDateString()} {b.slot.start_time}</TableCell>
