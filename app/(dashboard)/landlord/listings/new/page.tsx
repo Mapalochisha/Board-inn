@@ -23,15 +23,24 @@ export default function NewListingPage() {
     // 1. Create property
     const res = await fetch('/api/properties', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...formData, status })
     });
     
     if (res.ok) {
       const { id } = await res.json();
       // 2. Put amenities & 3. Post units (simplified for demo)
-      await fetch(`/api/properties/${id}/amenities`, { method: 'PUT', body: JSON.stringify({ amenity_ids: formData.amenity_ids }) });
+      await fetch(`/api/properties/${id}/amenities`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amenity_ids: formData.amenity_ids }) 
+      });
       for (const unit of formData.units) {
-        await fetch(`/api/properties/${id}/units`, { method: 'POST', body: JSON.stringify(unit) });
+        await fetch(`/api/properties/${id}/units`, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(unit) 
+        });
       }
       
       toast.dismiss();

@@ -18,7 +18,11 @@ export default function LandlordBookingsPage() {
   useEffect(() => { fetchBookings(); }, []);
 
   const handleAction = async (id: string, status: string) => {
-    const res = await fetch(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    const res = await fetch(`/api/bookings/${id}`, { 
+      method: 'PATCH', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }) 
+    });
     if (res.ok) {
       toast.success('Booking updated');
       fetchBookings();

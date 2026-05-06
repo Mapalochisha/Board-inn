@@ -29,9 +29,15 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (!error) {
+    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && session) {
+      const role = session.user.user_metadata?.role
+      if (role && (role === 'renter' || role === 'landlord')) {
+        await supabase
+          .from('profiles')
+          .update({ role })
+          .eq('id', session.user.id)
+      }
       return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
     }
   }

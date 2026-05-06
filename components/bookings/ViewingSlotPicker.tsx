@@ -45,8 +45,8 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
 
     fetch(`/api/viewing-slots?property_id=${propertyId}`)
       .then((res) => res.json())
-      .then((data) => {
-        setSlots(data);
+      .then((json) => {
+        setSlots(json.data || []);
         setLoading(false);
       })
       .catch(() => {
@@ -88,6 +88,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
     setError(null);
     const res = await fetch('/api/bookings', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         slot_id: selectedSlot?.id,
         property_id: propertyId,

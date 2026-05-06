@@ -14,7 +14,7 @@ export default function BookingsPage() {
   useEffect(() => {
     fetch('/api/bookings')
       .then((res) => res.json())
-      .then((data) => setBookings(data));
+      .then(({ data }) => setBookings(data || []));
   }, []);
 
   const today = new Date();
@@ -25,6 +25,7 @@ export default function BookingsPage() {
     if (!confirm('Cancel this viewing?')) return;
     const res = await fetch(`/api/bookings/${id}`, {
       method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled_by_renter' })
     });
     if (res.ok) {
