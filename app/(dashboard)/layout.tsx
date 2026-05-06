@@ -1,4 +1,4 @@
-import { AuthGuard } from "@/components/shared/AuthGuard";
+import AuthGuard from "@/components/shared/AuthGuard";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { MobileNav } from "@/components/shared/MobileNav";

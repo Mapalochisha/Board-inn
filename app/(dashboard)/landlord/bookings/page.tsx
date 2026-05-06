@@ -11,7 +11,7 @@ export default function LandlordBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
 
   const fetchBookings = () => fetch('/api/bookings').then(res => res.json()).then(setBookings);
-  useEffect(fetchBookings, []);
+  useEffect(() => { fetchBookings(); }, []);
 
   const handleAction = async (id: string, status: string) => {
     const res = await fetch(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
