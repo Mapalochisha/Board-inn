@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { AmenityBadge } from "@/components/listings/AmenityBadge";
 import { UnitTypeTag } from "@/components/listings/UnitTypeTag";
+import { ViewingSlotPicker } from "@/components/bookings/ViewingSlotPicker";
+import { createClient } from "@/lib/supabase/server";
 
 async function getProperty(id: string) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/properties/${id}`, { cache: 'no-store' });
@@ -11,11 +13,13 @@ async function getProperty(id: string) {
 }
 
 export default async function PropertyPage({ params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
   const property = await getProperty(params.id);
   if (!property) notFound();
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-10 space-y-10">
+    <main className="max-w-4xl mx-auto px-6 py-10 space-y-10 pb-20">
       <div className="relative aspect-video rounded-xl overflow-hidden">
         <Image src={property.cover_image_url || "/placeholder.jpg"} alt={property.title} fill className="object-cover" />
       </div>
@@ -51,10 +55,20 @@ export default async function PropertyPage({ params }: { params: { id: string } 
         </div>
       </section>
 
-      <section className="bg-gray-50 p-6 rounded-lg">
+      <section id="viewing-slots">
         <h2 className="text-xl font-bold mb-4">Book a Viewing</h2>
-        <div className="bg-white border p-4 rounded-lg">Viewing slot picker arriving in Stage 7.</div>
+        <ViewingSlotPicker 
+          propertyId={params.id} 
+          units={property.units} 
+          isLoggedIn={!!session} 
+        />
       </section>
+
+      <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-white border-t z-50">
+        <a href="#viewing-slots" className="block w-full text-center bg-primary text-primary-foreground py-3 rounded-md font-semibold">
+          Book a Viewing
+        </a>
+      </div>
     </main>
   );
 }
