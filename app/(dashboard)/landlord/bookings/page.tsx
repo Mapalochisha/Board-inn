@@ -10,7 +10,11 @@ import { toast } from 'sonner';
 export default function LandlordBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
 
-  const fetchBookings = () => fetch('/api/bookings').then(res => res.json()).then(setBookings);
+  const fetchBookings = async () => {
+    const res = await fetch('/api/bookings');
+    const { data } = await res.json();
+    setBookings(data || []);
+  };
   useEffect(() => { fetchBookings(); }, []);
 
   const handleAction = async (id: string, status: string) => {
@@ -34,7 +38,7 @@ export default function LandlordBookingsPage() {
         <TabsList>
           {Object.keys(grouped).map(p => <TabsTrigger key={p} value={p}>{p}</TabsTrigger>)}
         </TabsList>
-        {Object.entries(grouped).map(([prop, bs]) => (
+        {(Object.entries(grouped) as [string, any[]][]).map(([prop, bs]) => (
           <TabsContent key={prop} value={prop}>
             <Table>
               <TableHeader>
@@ -46,7 +50,7 @@ export default function LandlordBookingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(bs as any[]).map((b: any) => (
+                {bs.map((b: any) => (
                   <TableRow key={b.id}>
                     <TableCell>{b.renter.full_name}</TableCell>
                     <TableCell>{new Date(b.slot.slot_date).toLocaleDateString()} {b.slot.start_time}</TableCell>

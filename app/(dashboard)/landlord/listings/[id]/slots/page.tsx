@@ -11,7 +11,7 @@ export default function ManageSlotsPage({ params }: { params: { id: string } }) 
   const [newSlot, setNewSlot] = useState({ date: '', start_time: '', end_time: '', max_viewers: 5 });
 
   const fetchSlots = () => fetch(`/api/viewing-slots?property_id=${params.id}`).then(res => res.json()).then(setSlots);
-  useEffect(fetchSlots, [params.id]);
+  useEffect(() => { fetchSlots(); }, [params.id]);
 
   const handleCreate = async () => {
     const res = await fetch('/api/viewing-slots', { method: 'POST', body: JSON.stringify({ ...newSlot, property_id: params.id }) });
