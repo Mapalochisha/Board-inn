@@ -13,7 +13,7 @@ async function getProperty(id: string) {
 }
 
 export default async function PropertyPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   const property = await getProperty(params.id);
   if (!property) notFound();
