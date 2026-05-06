@@ -2,13 +2,13 @@ import Link from "next/link";
 
 export function Sidebar({ role }: { role: string }) {
   const links = role === 'landlord' ? [
-    { name: 'My Listings', href: '/dashboard/landlord/listings' },
-    { name: 'Bookings Received', href: '/dashboard/landlord/bookings' },
-    { name: 'Add Listing', href: '/dashboard/landlord/listings/new' },
-    { name: 'Profile', href: '/dashboard/profile' },
+    { name: 'My Listings', href: '/landlord/listings' },
+    { name: 'Bookings Received', href: '/landlord/bookings' },
+    { name: 'Add Listing', href: '/landlord/listings/new' },
+    { name: 'Profile', href: '/profile' },
   ] : [
-    { name: 'My Bookings', href: '/dashboard/bookings' },
-    { name: 'Profile', href: '/dashboard/profile' },
+    { name: 'My Bookings', href: '/bookings' },
+    { name: 'Profile', href: '/profile' },
   ];
 
   return (
