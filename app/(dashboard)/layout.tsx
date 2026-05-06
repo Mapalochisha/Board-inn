@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/shared/Sidebar";
 import { MobileNav } from "@/components/shared/MobileNav";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   const role = session?.user.user_metadata.role;
 
