@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
           .update({ role })
           .eq('id', session.user.id)
       }
-      return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+      return NextResponse.redirect(new URL('/bookings', requestUrl.origin))
     }
   }
 

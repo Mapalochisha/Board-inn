@@ -45,7 +45,7 @@ export default function NewListingPage() {
       
       toast.dismiss();
       toast.success('Listing created successfully!');
-      router.push('/dashboard/landlord/listings');
+      router.push('/landlord/listings');
     } else {
       toast.error('Failed to create listing');
     }
