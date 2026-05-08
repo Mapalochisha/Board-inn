@@ -100,7 +100,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
 
     if (res.status === 201) {
       toast.success('Booking confirmed! Check your dashboard.');
-      router.push('/dashboard/bookings');
+      router.push('/bookings');
     } else if (res.status === 409) {
       setError('This slot is no longer available. Please select another.');
       setIsBooking(false);

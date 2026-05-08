@@ -39,7 +39,7 @@ export default function LandlordListingsPage() {
           <p className="text-muted-foreground mt-1">Manage all your properties and viewing schedules.</p>
         </div>
         <Button asChild size="lg" className="bg-primary">
-          <Link href="/dashboard/landlord/listings/new">
+          <Link href="/landlord/listings/new">
             <PlusCircle className="w-4 h-4 mr-2" />
             Add New Listing
           </Link>
@@ -79,10 +79,10 @@ export default function LandlordListingsPage() {
                       <Link href={`/listings/${p.id}`}><Eye className="w-4 h-4" /></Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/landlord/listings/${p.id}/edit`}><Pencil className="w-4 h-4" /></Link>
+                      <Link href={`/landlord/listings/${p.id}/edit`}><Pencil className="w-4 h-4" /></Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/landlord/listings/${p.id}/slots`}><Calendar className="w-4 h-4" /></Link>
+                      <Link href={`/landlord/listings/${p.id}/slots`}><Calendar className="w-4 h-4" /></Link>
                     </Button>
                   </TableCell>
                 </TableRow>
