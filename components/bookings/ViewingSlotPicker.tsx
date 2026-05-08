@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatSlotTime } from '@/lib/booking-utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Calendar, Users, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface Unit {
   id: string;
@@ -51,16 +52,16 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
       })
       .catch(() => {
         setLoading(false);
-        toast.error('Failed to load slots');
+        toast.error('Failed to load viewing slots');
       });
   }, [propertyId, isLoggedIn]);
 
   if (!isLoggedIn) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="mb-4">Sign in to book a viewing</p>
-          <div className="flex justify-center gap-2">
+      <Card className="border-dashed">
+        <CardContent className="p-8 text-center space-y-4">
+          <p className="text-muted-foreground">Sign in to book a viewing for this property.</p>
+          <div className="flex justify-center gap-3">
             <Button onClick={() => router.push('/login')}>Log In</Button>
             <Button variant="outline" onClick={() => router.push('/register')}>Register</Button>
           </div>
@@ -72,7 +73,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
       </div>
     );
   }
@@ -99,7 +100,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
 
     if (res.status === 201) {
       toast.success('Booking confirmed! Check your dashboard.');
-      router.push('/bookings');
+      router.push('/dashboard/bookings');
     } else if (res.status === 409) {
       setError('This slot is no longer available. Please select another.');
       setIsBooking(false);
@@ -114,22 +115,33 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
   return (
     <div className="space-y-8">
       {Object.entries(groupedSlots).map(([date, dateSlots]) => (
-        <div key={date}>
-          <h3 className="font-semibold mb-4">{new Date(date).toLocaleDateString()}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div key={date} className="space-y-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+            <Calendar className="w-5 h-5" />
+            {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {dateSlots.map((slot) => {
               const remaining = slot.max_viewers - slot.current_viewers;
               const isFull = remaining <= 0;
 
               return (
-                <Card key={slot.id} className={isFull ? 'bg-muted' : ''}>
-                  <CardContent className="p-4 space-y-2">
-                    <p className="font-medium">{formatSlotTime(slot.start_time, slot.end_time)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {isFull ? 'Fully Booked' : `${remaining} spot(s) remaining`}
-                    </p>
+                <Card key={slot.id} className={`transition-all ${isFull ? 'bg-muted/50 border-none' : 'hover:border-primary/50'}`}>
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <p className="font-bold text-lg">{formatSlotTime(slot.start_time, slot.end_time)}</p>
+                      {isFull && <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full uppercase tracking-wider font-semibold">Full</span>}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>{isFull ? 'Fully Booked' : `${remaining} spot(s) remaining`}</span>
+                    </div>
                     {!isFull && (
-                      <Button onClick={() => setSelectedSlot(slot)} variant={selectedSlot?.id === slot.id ? 'default' : 'secondary'}>
+                      <Button 
+                        onClick={() => setSelectedSlot(slot)} 
+                        variant={selectedSlot?.id === slot.id ? 'default' : 'outline'}
+                        className="w-full"
+                      >
                         {selectedSlot?.id === slot.id ? 'Selected' : 'Select'}
                       </Button>
                     )}
@@ -142,24 +154,49 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
       ))}
 
       {selectedSlot && (
-        <div className="border-t pt-8 space-y-4">
-          <h3 className="font-semibold">Confirm Viewing</h3>
-          <p>{new Date(selectedSlot.slot_date).toLocaleDateString()} at {formatSlotTime(selectedSlot.start_time, selectedSlot.end_time)}</p>
-          <Select onValueChange={setUnitId} defaultValue="whole">
-            <SelectTrigger>
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="whole">Viewing whole property</SelectItem>
-              {units.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Textarea placeholder="Optional notes for landlord..." onChange={(e) => setNotes(e.target.value)} />
-          <Button onClick={handleConfirm} disabled={isBooking}>
-            {isBooking ? 'Confirming...' : 'Confirm Booking'}
-          </Button>
-          {error && <p className="text-destructive text-sm">{error}</p>}
-        </div>
+        <Card className="border-primary/20 bg-primary/5 shadow-sm mt-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Confirm Your Booking</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-background p-4 rounded-lg border space-y-2">
+              <p className="text-sm font-medium">Selected Slot:</p>
+              <p className="font-semibold">{new Date(selectedSlot.slot_date).toLocaleDateString()} at {formatSlotTime(selectedSlot.start_time, selectedSlot.end_time)}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Unit preference</label>
+              <Select onValueChange={setUnitId} defaultValue="whole">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="whole">Viewing whole property</SelectItem>
+                  {units.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Landlord notes (optional)</label>
+              <Textarea 
+                placeholder="Any special requests or questions?" 
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+            
+            <div className="pt-2">
+              <Button onClick={handleConfirm} disabled={isBooking} className="w-full bg-green-600 hover:bg-green-700">
+                {isBooking ? 'Confirming...' : 'Confirm Booking'}
+              </Button>
+              {error && (
+                <div className="mt-3 flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-md">
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

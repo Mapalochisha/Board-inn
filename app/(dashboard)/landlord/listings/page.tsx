@@ -5,71 +5,91 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Building2, Eye, Calendar, Pencil } from 'lucide-react';
 
 export default function LandlordListingsPage() {
   const [properties, setProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/properties?landlord=true')
       .then((res) => res.json())
-      .then((data) => setProperties(data.data));
+      .then((json) => {
+        setProperties(json.data || []);
+        setLoading(false);
+      });
   }, []);
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'draft': return <Badge variant="secondary">Draft</Badge>;
-      case 'published': return <Badge className="bg-green-500">Published</Badge>;
-      case 'archived': return <Badge variant="destructive">Archived</Badge>;
-      default: return <Badge>{status}</Badge>;
-    }
+    const variants: Record<string, string> = {
+      draft: 'bg-gray-100 text-gray-800',
+      published: 'bg-green-100 text-green-800',
+      archived: 'bg-red-100 text-red-800',
+    };
+    return <Badge variant="outline" className={variants[status] || 'bg-gray-100'}>{status}</Badge>;
   };
 
+  if (loading) return <div>Loading...</div>;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">My Listings</h1>
-        <Button asChild>
-          <Link href="/dashboard/landlord/listings/new">Add New Listing</Link>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">My Listings</h1>
+          <p className="text-muted-foreground mt-1">Manage all your properties and viewing schedules.</p>
+        </div>
+        <Button asChild size="lg" className="bg-primary">
+          <Link href="/dashboard/landlord/listings/new">
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Add New Listing
+          </Link>
         </Button>
       </div>
 
       {properties.length === 0 ? (
-        <div className="text-center py-20 border rounded-lg">
-          <p className="mb-4">You haven't listed any properties yet.</p>
+        <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
+          <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold">No listings found</h3>
+          <p className="text-muted-foreground mb-6">Start by creating your first property listing.</p>
           <Button asChild>
             <Link href="/dashboard/landlord/listings/new">Create your first listing</Link>
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>City</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Units</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {properties.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.title}</TableCell>
-                <TableCell>{p.city}</TableCell>
-                <TableCell>{getStatusBadge(p.status)}</TableCell>
-                <TableCell>{p.units?.length || 0}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/listings/${p.id}`}>View</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/landlord/listings/${p.id}/slots`}>Manage Slots</Link>
-                  </Button>
-                </TableCell>
+        <div className="border rounded-xl shadow-sm overflow-hidden bg-card">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>Property</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Units</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {properties.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.title}</TableCell>
+                  <TableCell>{p.city}</TableCell>
+                  <TableCell>{getStatusBadge(p.status)}</TableCell>
+                  <TableCell className="text-right">{p.units?.length || 0}</TableCell>
+                  <TableCell className="flex justify-center gap-2">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/listings/${p.id}`}><Eye className="w-4 h-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/landlord/listings/${p.id}/edit`}><Pencil className="w-4 h-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/landlord/listings/${p.id}/slots`}><Calendar className="w-4 h-4" /></Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );
