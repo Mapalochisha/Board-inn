@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Plus, Trash2, Upload, ChevronRight, ChevronLeft, Check, Camera, ListChecks, Building2, MapPin } from 'lucide-react';
 import Image from 'next/image';
@@ -265,7 +263,12 @@ export default function NewListingPage() {
                     onClick={() => toggleAmenity(amenity.id)}
                     className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${formData.amenity_ids.includes(amenity.id) ? 'bg-primary/10 border-primary shadow-sm' : 'hover:border-primary/50'}`}
                   >
-                    <Checkbox checked={formData.amenity_ids.includes(amenity.id)} onCheckedChange={() => toggleAmenity(amenity.id)} />
+                    <input 
+                      type="checkbox" 
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={formData.amenity_ids.includes(amenity.id)} 
+                      readOnly 
+                    />
                     <span className="text-sm font-medium">{amenity.name}</span>
                   </div>
                 ))}
