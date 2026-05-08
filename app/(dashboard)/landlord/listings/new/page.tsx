@@ -129,10 +129,15 @@ export default function NewListingPage() {
 
       // 3. Add Units
       for (const unit of formData.units) {
+        const mappedUnit = {
+          ...unit,
+          unit_type: unit.unit_type === 'room' ? 'full_room' : 'bed_space',
+          gender_restriction: unit.gender_restriction === 'mixed' ? 'any' : unit.gender_restriction
+        };
         await fetch(`/api/properties/${propertyId}/units`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(unit)
+          body: JSON.stringify(mappedUnit)
         });
       }
 

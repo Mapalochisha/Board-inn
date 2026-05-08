@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       .insert({
         ...result.data,
         landlord_id: session.user.id,
-        status: "draft",
+        status: result.data.status || "draft",
       })
       .select()
       .single();

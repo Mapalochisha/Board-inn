@@ -9,12 +9,12 @@ export const createPropertySchema = z.object({
   district: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  total_rooms: z.number().int().min(1),
-});
-
-export const updatePropertySchema = createPropertySchema.partial().extend({
+  total_rooms: z.number().int().min(1).optional(),
+  cover_image_url: z.string().url().optional().nullable(),
   status: z.enum(["draft", "published", "archived"]).optional(),
 });
+
+export const updatePropertySchema = createPropertySchema.partial();
 
 export const createUnitSchema = z.object({
   name: z.string().min(1).max(100),
