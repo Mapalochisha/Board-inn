@@ -62,6 +62,7 @@ export async function GET(request: Request) {
   const formattedData = data.map((prop: any) => {
     const prices = prop.units.map((u: any) => u.price_per_month);
     const availableUnitsCount = prop.units.filter((u: any) => u.is_available).length;
+    const unitTypes = Array.from(new Set(prop.units.map((u: any) => u.unit_type)));
     
     return {
       id: prop.id,
@@ -71,6 +72,7 @@ export async function GET(request: Request) {
       cover_image_url: prop.cover_image_url,
       min_price: prices.length > 0 ? Math.min(...prices) : null,
       available_units: availableUnitsCount,
+      unit_types: unitTypes,
     };
   });
 

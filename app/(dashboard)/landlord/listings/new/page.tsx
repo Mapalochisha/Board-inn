@@ -110,6 +110,7 @@ export default function NewListingPage() {
           city: formData.city,
           district: formData.district,
           cover_image_url: formData.images[0] || null,
+          images: formData.images,
           status
         })
       });

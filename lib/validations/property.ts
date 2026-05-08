@@ -11,6 +11,7 @@ export const createPropertySchema = z.object({
   longitude: z.number().optional(),
   total_rooms: z.number().int().min(1).optional(),
   cover_image_url: z.string().url().optional().nullable(),
+  images: z.array(z.string().url()).optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
 });
 
