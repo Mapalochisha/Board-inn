@@ -56,8 +56,10 @@ export default function NewListingPage() {
       
       const res = await fetch('/api/upload/property-image', { method: 'POST', body: formDataUpload });
       if (res.ok) {
-        const { url } = await res.json();
-        setFormData((prev: any) => ({ ...prev, images: [...prev.images, url] }));
+        const { data } = await res.json();
+        if (data && data.url) {
+          setFormData((prev: any) => ({ ...prev, images: [...prev.images, data.url] }));
+        }
       }
     }
     setLoading(false);
@@ -115,7 +117,10 @@ export default function NewListingPage() {
         })
       });
       
-      if (!res.ok) throw new Error('Failed to create property');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create property');
+      }
       const { data: property } = await res.json();
       const propertyId = property.id;
 
@@ -144,8 +149,8 @@ export default function NewListingPage() {
 
       toast.success('Listing created successfully!', { id: toastId });
       router.push('/landlord/listings');
-    } catch (error) {
-      toast.error('Something went wrong. Please try again.', { id: toastId });
+    } catch (error: any) {
+      toast.error(error.message || 'Something went wrong. Please try again.', { id: toastId });
     } finally {
       setLoading(false);
     }
