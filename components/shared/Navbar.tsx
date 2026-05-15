@@ -141,7 +141,7 @@ export default function Navbar() {
                 <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                   <div className="flex flex-col gap-8 py-8">
                     <Link href="/" className="flex items-center">
-                      <span className="text-2xl font-bold text-green-600">
+                      <span className="text-2xl font-bold text-green-600 dark:text-green-500">
                         Board-inn
                       </span>
                     </Link>

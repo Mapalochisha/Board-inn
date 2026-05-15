@@ -16,26 +16,26 @@ export function PropertyCard({ property }: { property: any }) {
   return (
     <div
       onClick={() => router.push(`/listings/${property.id}`)}
-      className="group cursor-pointer border rounded-xl overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] bg-white"
+      className="group cursor-pointer border rounded-xl overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] bg-card text-card-foreground"
     >
       <div className="relative aspect-video">
         {property.cover_image_url ? (
           <Image src={property.cover_image_url} alt={property.title} fill className="object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">No Image</span>
+          <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+            <span className="text-muted-foreground text-sm">No Image</span>
           </div>
         )}
       </div>
       <div className="p-4 space-y-2">
-        <h3 className="font-semibold text-lg truncate text-gray-900">{property.title}</h3>
-        <div className="flex items-center gap-1 text-sm text-gray-500">
+        <h3 className="font-semibold text-lg truncate">{property.title}</h3>
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin className="w-4 h-4" />
           {property.city}, {property.district}
         </div>
         <div className="flex justify-between items-center pt-2">
-          <span className="text-green-700 font-semibold">From ZMW {property.min_price || 'N/A'}/mo</span>
-          <span className="text-xs text-gray-400">{property.available_units || 0} spaces available</span>
+          <span className="text-green-700 dark:text-green-500 font-semibold">From ZMW {property.min_price || 'N/A'}/mo</span>
+          <span className="text-xs text-muted-foreground">{property.available_units || 0} spaces available</span>
         </div>
       </div>
     </div>

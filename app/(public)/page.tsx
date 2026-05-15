@@ -25,7 +25,7 @@ export default async function HomePage() {
       <section className="bg-gradient-to-r from-[#0F2E1E] to-[#1A6B4A] py-20 px-6 text-white text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-6">Find Your Perfect Student Space</h1>
         <div className="max-w-xl mx-auto flex gap-2 overflow-hidden">
-            <input type="text" placeholder="Enter city..." className="flex-1 min-w-0 px-4 py-3 rounded-lg text-black" />
+            <input type="text" placeholder="Enter city..." className="flex-1 min-w-0 px-4 py-3 rounded-lg text-black bg-white" />
             <button className="bg-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-700">Search</button>
         </div>
       </section>
@@ -37,12 +37,12 @@ export default async function HomePage() {
           {properties.map((p: any) => <PropertyCard key={p.id} property={p} />)}
         </div>
         <div className="text-center mt-10">
-          <Link href="/listings" className="text-green-700 font-semibold hover:underline">View All Listings</Link>
+          <Link href="/listings" className="text-green-700 dark:text-green-500 font-semibold hover:underline">View All Listings</Link>
         </div>
       </section>
 
       {/* How it Works */}
-      <section className="bg-gray-50 py-16 px-6">
+      <section className="bg-slate-50 dark:bg-slate-900/50 py-16 px-6">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center">
           {[
             { icon: Search, title: "Search", desc: "Find properties in your preferred city." },
@@ -50,16 +50,16 @@ export default async function HomePage() {
             { icon: Home, title: "Move In", desc: "Secure your room and start your journey." }
           ].map((step, i) => (
             <div key={i} className="space-y-3">
-              <step.icon className="w-10 h-10 mx-auto text-green-700" />
+              <step.icon className="w-10 h-10 mx-auto text-green-700 dark:text-green-500" />
               <div className="font-bold text-xl">{i + 1}. {step.title}</div>
-              <p className="text-gray-600 text-sm">{step.desc}</p>
+              <p className="text-muted-foreground text-sm">{step.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="bg-green-100 py-16 text-center px-6">
+      <section className="bg-green-50 dark:bg-green-900/20 py-16 text-center px-6">
         <h2 className="text-2xl font-bold mb-4">Are you a landlord? List your property for free.</h2>
         <Link href="/register" className="bg-green-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800">
           Get Started
