@@ -23,11 +23,13 @@ export default async function HomePage() {
     <main className="min-h-screen">
       {/* Hero */}
       <section className="bg-gradient-to-r from-[#0F2E1E] to-[#1A6B4A] py-20 px-6 text-white text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">Find Your Perfect Student Space</h1>
-        <div className="max-w-xl mx-auto flex gap-2 overflow-hidden">
+        <div className="max-w-xl mx-auto flex gap-2 overflow-hidden mb-12">
             <input type="text" placeholder="Enter city..." className="flex-1 min-w-0 px-4 py-3 rounded-lg text-black bg-white" />
-            <button className="bg-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-700">Search</button>
+            <button className="bg-green-600 px-4 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center min-w-[56px]">
+              <Search className="w-5 h-5" />
+            </button>
         </div>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">Find Your Perfect Student Space</h1>
       </section>
 
       {/* Featured */}
