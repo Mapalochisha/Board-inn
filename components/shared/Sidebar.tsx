@@ -17,10 +17,10 @@ export function Sidebar({ role }: { role: string }) {
 
   const adminLinks = [
     { name: 'Console', href: '/admin', icon: LayoutDashboard },
-    { name: 'Analytics', href: '/admin/analytics', icon: Building2 }, // Reusing Building for now or find better
+    { name: 'Hero Images', href: '/admin/hero', icon: Building2 }, // Using Building for now
     { name: 'All Properties', href: '/admin/properties', icon: Building2 },
     { name: 'User Management', href: '/admin/users', icon: UserCircle },
-    { name: 'Site Settings', href: '/admin/settings', icon: PlusCircle }, // Reusing Plus for now
+    { name: 'Site Settings', href: '/admin/settings', icon: PlusCircle },
   ];
 
   const links = role === 'admin' ? adminLinks : (role === 'landlord' ? landlordLinks : renterLinks);

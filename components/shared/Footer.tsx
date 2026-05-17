@@ -30,6 +30,14 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/about"
+                  className="text-sm text-muted-foreground hover:text-green-600 transition-colors"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/listings"
                   className="text-sm text-muted-foreground hover:text-green-600 transition-colors"
                 >
@@ -38,10 +46,18 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/register"
+                  href="/terms"
                   className="text-sm text-muted-foreground hover:text-green-600 transition-colors"
                 >
-                  Register
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-sm text-muted-foreground hover:text-green-600 transition-colors"
+                >
+                  Privacy Policy
                 </Link>
               </li>
             </ul>

@@ -11,19 +11,34 @@ const DEFAULT_IMAGES = [
 ];
 
 export function HeroCarousel() {
+  const [images, setImages] = useState<string[]>(DEFAULT_IMAGES);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data && data.data.length > 0) {
+          setImages(data.data);
+        }
+      })
+      .catch(() => {
+        // Fallback to defaults already set
+      });
+  }, []);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % DEFAULT_IMAGES.length);
+      setCurrent((prev) => (prev + 1) % images.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [images.length]);
 
   return (
     <section className="relative h-[600px] w-full overflow-hidden">
       {/* Images */}
-      {DEFAULT_IMAGES.map((img, i) => (
+      {images.map((img, i) => (
         <div
           key={i}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
@@ -66,17 +81,19 @@ export function HeroCarousel() {
       </div>
 
       {/* Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {DEFAULT_IMAGES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              i === current ? "bg-white w-8" : "bg-white/40"
-            }`}
-          />
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                i === current ? "bg-white w-8" : "bg-white/40"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
