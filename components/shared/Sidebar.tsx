@@ -15,7 +15,15 @@ export function Sidebar({ role }: { role: string }) {
     { name: 'My Bookings', href: '/bookings', icon: Calendar },
   ];
 
-  const links = role === 'landlord' ? landlordLinks : renterLinks;
+  const adminLinks = [
+    { name: 'Console', href: '/admin', icon: LayoutDashboard },
+    { name: 'Analytics', href: '/admin/analytics', icon: Building2 }, // Reusing Building for now or find better
+    { name: 'All Properties', href: '/admin/properties', icon: Building2 },
+    { name: 'User Management', href: '/admin/users', icon: UserCircle },
+    { name: 'Site Settings', href: '/admin/settings', icon: PlusCircle }, // Reusing Plus for now
+  ];
+
+  const links = role === 'admin' ? adminLinks : (role === 'landlord' ? landlordLinks : renterLinks);
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-slate-950 border-r border-black/5 dark:border-white/5">
