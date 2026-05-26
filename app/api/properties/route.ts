@@ -49,16 +49,16 @@ export async function GET(request: Request) {
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  if (minPrice) {
+  if (minPrice && minPrice !== "") {
     query = query.gte("units.price_per_month", parseFloat(minPrice));
   }
-  if (maxPrice) {
+  if (maxPrice && maxPrice !== "") {
     query = query.lte("units.price_per_month", parseFloat(maxPrice));
   }
-  if (unitType) {
+  if (unitType && unitType !== "any") {
     query = query.eq("units.unit_type", unitType);
   }
-  if (genderRestriction) {
+  if (genderRestriction && genderRestriction !== "any") {
     query = query.eq("units.gender_restriction", genderRestriction);
   }
 
@@ -72,10 +72,11 @@ export async function GET(request: Request) {
   }
 
   // Transform data to include MIN(price_per_month) and count of available units
-  const formattedData = data.map((prop: any) => {
-    const prices = prop.units.map((u: any) => u.price_per_month);
-    const availableUnitsCount = prop.units.filter((u: any) => u.is_available).length;
-    const unitTypes = Array.from(new Set(prop.units.map((u: any) => u.unit_type)));
+  const formattedData = (data || []).map((prop: any) => {
+    const units = prop.units || [];
+    const prices = units.map((u: any) => u.price_per_month);
+    const availableUnitsCount = units.filter((u: any) => u.is_available).length;
+    const unitTypes = Array.from(new Set(units.map((u: any) => u.unit_type)));
     
     return {
       id: prop.id,
@@ -83,6 +84,7 @@ export async function GET(request: Request) {
       city: prop.city,
       district: prop.district,
       cover_image_url: prop.cover_image_url,
+      status: prop.status,
       min_price: prices.length > 0 ? Math.min(...prices) : null,
       available_units: availableUnitsCount,
       unit_types: unitTypes,
