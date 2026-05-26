@@ -59,32 +59,35 @@ export async function GET(request: Request) {
   }
 
   // Transform and Filter data manually to prevent joined data pruning
+  const applyFilters = (units: any[], city: string | null, district: string | null, unitType: string | null, gender: string | null, minPrice: number | null, maxPrice: number | null) => {
+    let filtered = units;
+    if (minPrice) filtered = filtered.filter((u: any) => u.price_per_month >= minPrice);
+    if (maxPrice) filtered = filtered.filter((u: any) => u.price_per_month <= maxPrice);
+    if (unitType && unitType !== "any") filtered = filtered.filter((u: any) => u.unit_type === unitType);
+    if (gender && gender !== "any") filtered = filtered.filter((u: any) => u.gender_restriction === gender);
+    return filtered;
+  };
+
   const formattedData = (data || [])
     .map((prop: any) => {
-      // 1. Get all units for this property
-      let units = prop.units || [];
+      const allUnits = prop.units || [];
+      const exactMatches = applyFilters(allUnits, city, null, unitType, genderRestriction, minPrice ? parseFloat(minPrice) : null, maxPrice ? parseFloat(maxPrice) : null);
+      
+      // Tier 1: Exact Match (Everything including District/Gender/Type)
+      let finalUnits = exactMatches;
+      let score = 100;
 
-      // 2. Filter units manually if criteria provided
-      if (minPrice && minPrice !== "") {
-        units = units.filter((u: any) => u.price_per_month >= parseFloat(minPrice));
-      }
-      if (maxPrice && maxPrice !== "") {
-        units = units.filter((u: any) => u.price_per_month <= parseFloat(maxPrice));
-      }
-      if (unitType && unitType !== "any") {
-        units = units.filter((u: any) => u.unit_type === unitType);
-      }
-      if (genderRestriction && genderRestriction !== "any") {
-        units = units.filter((u: any) => u.gender_restriction === genderRestriction);
+      // Tier 2: Fallback (Ignore gender/type if exact fails)
+      if (finalUnits.length === 0) {
+        finalUnits = applyFilters(allUnits, city, null, "any", "any", minPrice ? parseFloat(minPrice) : null, maxPrice ? parseFloat(maxPrice) : null);
+        score = 50;
       }
 
-      // 3. If we are filtering and NO units match, this property shouldn't be in the list
-      const isFiltering = (minPrice && minPrice !== "") || (maxPrice && maxPrice !== "") || (unitType && unitType !== "any") || (genderRestriction && genderRestriction !== "any");
-      if (isFiltering && units.length === 0) return null;
+      // If still no units, exclude property
+      if (finalUnits.length === 0) return null;
 
-      const prices = units.map((u: any) => u.price_per_month);
-      const availableUnitsCount = units.filter((u: any) => u.is_available).length;
-      const unitTypes = Array.from(new Set(units.map((u: any) => u.unit_type)));
+      const prices = finalUnits.map((u: any) => u.price_per_month);
+      const availableUnitsCount = finalUnits.filter((u: any) => u.is_available).length;
       
       return {
         id: prop.id,
@@ -95,10 +98,10 @@ export async function GET(request: Request) {
         status: prop.status,
         min_price: prices.length > 0 ? Math.min(...prices) : null,
         available_units: availableUnitsCount,
-        unit_types: unitTypes,
+        match_score: score
       };
     })
-    .filter(Boolean); // Remove null entries (properties that didn't match filters)
+    .filter(Boolean);
 
   return NextResponse.json({
     data: formattedData,
