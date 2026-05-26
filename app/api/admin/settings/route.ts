@@ -7,20 +7,22 @@ export async function GET(request: Request) {
     
     const supabase = await createClient();
     
-    let query = supabase.from("site_settings").select("*");
-    
     if (key) {
-        query = query.eq("key", key).single();
+        const { data, error } = await supabase
+            .from("site_settings")
+            .select("*")
+            .eq("key", key)
+            .single();
+
+        if (error) return NextResponse.json({ data: null, error: error.message });
+        return NextResponse.json({ data: data.value, error: null });
     }
 
-    const { data, error } = await query;
+    const { data, error } = await supabase
+        .from("site_settings")
+        .select("*");
 
-    if (error) {
-        if (key) return NextResponse.json({ data: null, error: error.message });
-        return NextResponse.json({ data: [], error: error.message });
-    }
-    
-    if (key) return NextResponse.json({ data: data.value, error: null });
+    if (error) return NextResponse.json({ data: [], error: error.message });
     return NextResponse.json({ data, error: null });
 }
 
