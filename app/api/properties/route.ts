@@ -49,19 +49,6 @@ export async function GET(request: Request) {
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  if (minPrice && minPrice !== "") {
-    query = query.gte("units.price_per_month", parseFloat(minPrice));
-  }
-  if (maxPrice && maxPrice !== "") {
-    query = query.lte("units.price_per_month", parseFloat(maxPrice));
-  }
-  if (unitType && unitType !== "any") {
-    query = query.eq("units.unit_type", unitType);
-  }
-  if (genderRestriction && genderRestriction !== "any") {
-    query = query.eq("units.gender_restriction", genderRestriction);
-  }
-
   const { data, error } = await query;
 
   if (error) {
@@ -71,25 +58,47 @@ export async function GET(request: Request) {
     );
   }
 
-  // Transform data to include MIN(price_per_month) and count of available units
-  const formattedData = (data || []).map((prop: any) => {
-    const units = prop.units || [];
-    const prices = units.map((u: any) => u.price_per_month);
-    const availableUnitsCount = units.filter((u: any) => u.is_available).length;
-    const unitTypes = Array.from(new Set(units.map((u: any) => u.unit_type)));
-    
-    return {
-      id: prop.id,
-      title: prop.title,
-      city: prop.city,
-      district: prop.district,
-      cover_image_url: prop.cover_image_url,
-      status: prop.status,
-      min_price: prices.length > 0 ? Math.min(...prices) : null,
-      available_units: availableUnitsCount,
-      unit_types: unitTypes,
-    };
-  });
+  // Transform and Filter data manually to prevent joined data pruning
+  const formattedData = (data || [])
+    .map((prop: any) => {
+      // 1. Get all units for this property
+      let units = prop.units || [];
+
+      // 2. Filter units manually if criteria provided
+      if (minPrice && minPrice !== "") {
+        units = units.filter((u: any) => u.price_per_month >= parseFloat(minPrice));
+      }
+      if (maxPrice && maxPrice !== "") {
+        units = units.filter((u: any) => u.price_per_month <= parseFloat(maxPrice));
+      }
+      if (unitType && unitType !== "any") {
+        units = units.filter((u: any) => u.unit_type === unitType);
+      }
+      if (genderRestriction && genderRestriction !== "any") {
+        units = units.filter((u: any) => u.gender_restriction === genderRestriction);
+      }
+
+      // 3. If we are filtering and NO units match, this property shouldn't be in the list
+      const isFiltering = (minPrice && minPrice !== "") || (maxPrice && maxPrice !== "") || (unitType && unitType !== "any") || (genderRestriction && genderRestriction !== "any");
+      if (isFiltering && units.length === 0) return null;
+
+      const prices = units.map((u: any) => u.price_per_month);
+      const availableUnitsCount = units.filter((u: any) => u.is_available).length;
+      const unitTypes = Array.from(new Set(units.map((u: any) => u.unit_type)));
+      
+      return {
+        id: prop.id,
+        title: prop.title,
+        city: prop.city,
+        district: prop.district,
+        cover_image_url: prop.cover_image_url,
+        status: prop.status,
+        min_price: prices.length > 0 ? Math.min(...prices) : null,
+        available_units: availableUnitsCount,
+        unit_types: unitTypes,
+      };
+    })
+    .filter(Boolean); // Remove null entries (properties that didn't match filters)
 
   return NextResponse.json({
     data: formattedData,
