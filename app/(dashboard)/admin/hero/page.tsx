@@ -14,7 +14,7 @@ export default function HeroManager() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/settings")
+    fetch("/api/admin/settings?key=hero_images")
       .then((res) => res.json())
       .then((data) => {
         if (data.data) setImages(data.data);
@@ -58,7 +58,10 @@ export default function HeroManager() {
     try {
       const res = await fetch("/api/admin/settings", {
         method: "POST",
-        body: JSON.stringify({ images }),
+        body: JSON.stringify({ 
+          key: "hero_images", 
+          value: images 
+        }),
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
