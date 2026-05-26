@@ -22,7 +22,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -31,7 +31,15 @@ export default function LoginPage() {
       setError(signInError.message);
       setLoading(false);
     } else {
-      router.push("/bookings");
+      // Get role to redirect correctly
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", signInData.user.id)
+        .single();
+      
+      const role = profile?.role || signInData.user.user_metadata?.role || "renter";
+      router.push(role === "landlord" ? "/landlord/listings" : "/bookings");
     }
   };
 
