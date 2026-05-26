@@ -4,7 +4,7 @@ import { MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export function PropertyCard({ property }: { property: any }) {
+export function PropertyCard({ property, index = 0 }: { property: any; index?: number }) {
   const router = useRouter();
 
   const getUnitSummary = () => {
@@ -20,7 +20,14 @@ export function PropertyCard({ property }: { property: any }) {
     >
       <div className="relative aspect-video">
         {property.cover_image_url ? (
-          <Image src={property.cover_image_url} alt={property.title} fill className="object-cover" />
+          <Image 
+            src={property.cover_image_url} 
+            alt={`${property.title}, preview`} 
+            fill 
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={index === 0}
+            className="object-cover" 
+          />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
             <span className="text-muted-foreground text-sm">No Image</span>

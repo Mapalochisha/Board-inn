@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Menu, PanelLeft } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sidebar } from "./Sidebar";
+import { cn } from "@/lib/utils";
 
-export function DashboardHeader({ user }: { user: any }) {
+interface DashboardHeaderProps {
+  user: any;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+}
+
+export function DashboardHeader({ user, isSidebarCollapsed, onToggleSidebar }: DashboardHeaderProps) {
   const router = useRouter();
+  const role = user?.user_metadata?.role || "renter";
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -22,9 +32,38 @@ export function DashboardHeader({ user }: { user: any }) {
   };
 
   return (
-    <header className="h-[72px] bg-white dark:bg-slate-950 border-b border-black/5 dark:border-white/5 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40">
-      <div className="flex items-center gap-4">
-        <h2 className="text-[11px] lg:text-[13px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] truncate">
+    <header className="h-[72px] bg-white dark:bg-slate-950 border-b border-black/5 dark:border-white/5 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-40">
+      <div className="flex items-center gap-3">
+        {/* Mobile Menu */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-slate-500">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-[280px] border-none">
+              <Sidebar role={role} isMobile />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Toggle (only visible when collapsed) */}
+        {isSidebarCollapsed && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleSidebar}
+            className="hidden md:flex text-slate-400 hover:text-green-600"
+          >
+            <PanelLeft className="w-5 h-5" />
+          </Button>
+        )}
+
+        <h2 className={cn(
+          "text-[11px] lg:text-[13px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] truncate transition-all",
+          isSidebarCollapsed ? "ml-2" : ""
+        )}>
           Management Console
         </h2>
       </div>
@@ -35,7 +74,7 @@ export function DashboardHeader({ user }: { user: any }) {
             {user?.user_metadata?.full_name || "User"}
           </p>
           <p className="text-[11px] lg:text-[12px] text-green-600 dark:text-green-500 font-semibold uppercase tracking-wider">
-            {user?.user_metadata?.role || "Member"}
+            {role}
           </p>
         </div>
 
@@ -50,19 +89,19 @@ export function DashboardHeader({ user }: { user: any }) {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 mt-2" align="end">
-            <div className="flex items-center justify-start gap-2 p-2">
+          <DropdownMenuContent className="w-64 mt-2 p-2 shadow-2xl border-2 bg-white dark:bg-slate-900" align="end">
+            <div className="flex flex-col space-y-4 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-sm">{user?.user_metadata?.full_name}</p>
-                    <p className="w-[180px] truncate text-[12px] text-slate-500">{user?.email}</p>
+                    <p className="font-bold text-base">{user?.user_metadata?.full_name}</p>
+                    <p className="w-full truncate text-xs text-slate-500 uppercase tracking-widest font-semibold opacity-70">{user?.email}</p>
                 </div>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/profile")}>
+            <DropdownMenuItem className="py-2.5 cursor-pointer" onClick={() => router.push("/profile")}>
               <User className="mr-2 h-4 w-4" /> Profile
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
+            <DropdownMenuItem className="text-destructive py-2.5 cursor-pointer focus:bg-destructive/10" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -71,3 +110,4 @@ export function DashboardHeader({ user }: { user: any }) {
     </header>
   );
 }
+

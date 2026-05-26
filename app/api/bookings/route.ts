@@ -16,16 +16,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user profile to determine role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ data: null, error: "Profile not found" }, { status: 404 });
-    }
+    // Get user role from metadata (fastest)
+    const role = session.user.user_metadata?.role || "renter";
 
     let query = supabase.from("viewing_bookings").select(`
       *,
@@ -47,9 +39,11 @@ export async function GET(request: Request) {
       )
     `);
 
-    if (profile.role === "renter") {
+    if (role === "admin") {
+      // Admins see everything, no filter
+    } else if (role === "renter") {
       query = query.eq("renter_id", session.user.id);
-    } else if (profile.role === "landlord") {
+    } else if (role === "landlord") {
       // Landlords see bookings for their properties
       const { data: ownedProperties } = await supabase
         .from("properties")
@@ -96,14 +90,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Role must be renter
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
+    // Role must be renter (Admins allowed for testing/support)
+    const role = session.user.user_metadata?.role || "renter";
 
-    if (!profile || profile.role !== "renter") {
+    if (role !== "renter" && role !== "admin") {
       return NextResponse.json({ data: null, error: "Only renters can book viewings" }, { status: 403 });
     }
 

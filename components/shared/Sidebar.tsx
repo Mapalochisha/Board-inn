@@ -1,8 +1,16 @@
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Building2, PlusCircle, UserCircle, Home, LogOut, ChevronLeft } from "lucide-react";
+import { LayoutDashboard, Calendar, Building2, PlusCircle, UserCircle, Home, ChevronLeft, PanelLeftClose, PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
-export function Sidebar({ role }: { role: string }) {
+interface SidebarProps {
+  role: string;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
+  isMobile?: boolean;
+}
+
+export function Sidebar({ role, isCollapsed, onToggle, isMobile }: SidebarProps) {
   const landlordLinks = [
     { name: 'Dashboard', href: '/landlord/listings', icon: LayoutDashboard },
     { name: 'My Listings', href: '/landlord/listings', icon: Building2 },
@@ -17,7 +25,7 @@ export function Sidebar({ role }: { role: string }) {
 
   const adminLinks = [
     { name: 'Console', href: '/admin', icon: LayoutDashboard },
-    { name: 'Hero Images', href: '/admin/hero', icon: Building2 }, // Using Building for now
+    { name: 'Hero Images', href: '/admin/hero', icon: Building2 },
     { name: 'All Properties', href: '/admin/properties', icon: Building2 },
     { name: 'User Management', href: '/admin/users', icon: UserCircle },
     { name: 'Site Settings', href: '/admin/settings', icon: PlusCircle },
@@ -26,19 +34,45 @@ export function Sidebar({ role }: { role: string }) {
   const links = role === 'admin' ? adminLinks : (role === 'landlord' ? landlordLinks : renterLinks);
 
   return (
-    <div className="flex flex-col h-full w-full bg-white dark:bg-slate-950 border-r border-black/5 dark:border-white/5">
-      <div className="h-[72px] flex items-center px-6 border-b border-black/5 dark:border-white/5">
-        <Link href="/" className="flex items-center gap-2.5">
+    <div className={cn(
+      "flex flex-col h-full bg-white dark:bg-slate-950 border-r border-black/5 dark:border-white/5 transition-all duration-300",
+      isCollapsed && !isMobile ? "w-[80px]" : "w-full"
+    )}>
+      <div className={cn(
+        "h-[72px] flex items-center border-b border-black/5 dark:border-white/5",
+        isCollapsed && !isMobile ? "justify-center px-0" : "justify-between px-6"
+      )}>
+        <Link href="/" className={cn("flex items-center gap-2.5", isCollapsed && !isMobile && "hidden")}>
           <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white shadow-lg shadow-green-600/20">
             <Home className="w-5 h-5" />
           </div>
           <span className="font-bold text-[18px] tracking-tight text-slate-900 dark:text-white">Board-inn</span>
         </Link>
+        
+        {isCollapsed && !isMobile && (
+          <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white shadow-lg shadow-green-600/20">
+            <Home className="w-6 h-6" />
+          </div>
+        )}
+
+        {!isMobile && onToggle && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggle}
+            className={cn("text-slate-400 hover:text-green-600", isCollapsed && "mt-2")}
+          >
+            {isCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </Button>
+        )}
       </div>
       
-      <div className="flex-1 py-6 px-4 space-y-8 overflow-y-auto">
+      <div className="flex-1 py-6 px-3 space-y-8 overflow-y-auto overflow-x-hidden">
         <div>
-          <h3 className="px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-4">
+          <h3 className={cn(
+            "px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-4 transition-opacity duration-200",
+            isCollapsed && !isMobile ? "opacity-0 h-0 mb-0" : "opacity-100"
+          )}>
             Management
           </h3>
           <nav className="space-y-1">
@@ -46,40 +80,77 @@ export function Sidebar({ role }: { role: string }) {
               <Link 
                 key={link.href} 
                 href={link.href} 
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 transition-all group"
+                title={isCollapsed ? link.name : ""}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 transition-all group",
+                  isCollapsed && !isMobile ? "justify-center" : ""
+                )}
               >
-                <link.icon className="w-5 h-5 text-slate-400 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors" />
-                {link.name}
+                <link.icon className={cn(
+                  "w-5 h-5 text-slate-400 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors shrink-0",
+                  isCollapsed && !isMobile ? "w-6 h-6" : ""
+                )} />
+                <span className={cn(
+                  "transition-all duration-200",
+                  isCollapsed && !isMobile ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                )}>
+                  {link.name}
+                </span>
               </Link>
             ))}
           </nav>
         </div>
 
         <div>
-          <h3 className="px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-4">
+          <h3 className={cn(
+            "px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-4 transition-opacity duration-200",
+            isCollapsed && !isMobile ? "opacity-0 h-0 mb-0" : "opacity-100"
+          )}>
             Account
           </h3>
           <nav className="space-y-1">
             <Link 
               href="/profile" 
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 transition-all group"
+              title={isCollapsed ? "My Profile" : ""}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 transition-all group",
+                isCollapsed && !isMobile ? "justify-center" : ""
+              )}
             >
-              <UserCircle className="w-5 h-5 text-slate-400 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors" />
-              My Profile
+              <UserCircle className={cn(
+                "w-5 h-5 text-slate-400 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors shrink-0",
+                isCollapsed && !isMobile ? "w-6 h-6" : ""
+              )} />
+              <span className={cn(
+                "transition-all duration-200",
+                isCollapsed && !isMobile ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+              )}>
+                My Profile
+              </span>
             </Link>
           </nav>
         </div>
       </div>
       
-      <div className="p-4 border-t border-black/5 dark:border-white/5">
+      <div className={cn("p-4 border-t border-black/5 dark:border-white/5", isCollapsed && !isMobile && "flex justify-center")}>
         <Link 
           href="/" 
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+          title={isCollapsed ? "Back to site" : ""}
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all",
+            isCollapsed && !isMobile ? "justify-center px-0" : ""
+          )}
         >
-          <ChevronLeft className="w-4 h-4" />
-          Back to site
+          <ChevronLeft className="w-4 h-4 shrink-0" />
+          <span className={cn(
+            "transition-all duration-200",
+            isCollapsed && !isMobile ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+          )}>
+            Back to site
+          </span>
         </Link>
       </div>
     </div>
   );
 }
+

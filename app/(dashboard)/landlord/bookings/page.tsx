@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { CheckCircle2, XCircle, Calendar, Clock, User } from 'lucide-react';
 
+import { EmptyState } from '@/components/shared/EmptyState';
+
 export default function LandlordBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchBookings = async () => {
     const res = await fetch('/api/bookings');
     const { data } = await res.json();
     setBookings(data || []);
-    setLoading(false);
   };
 
   useEffect(() => { fetchBookings(); }, []);
@@ -41,8 +41,6 @@ export default function LandlordBookingsPage() {
     return acc;
   }, {} as Record<string, any[]>);
 
-  if (loading) return <div>Loading...</div>;
-
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -62,9 +60,12 @@ export default function LandlordBookingsPage() {
       </div>
 
       {Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed rounded-xl">
-          <p className="text-muted-foreground">No bookings received yet.</p>
-        </div>
+        <EmptyState 
+          icon={Calendar}
+          title="No bookings received yet"
+          description="Your property viewings will appear here once renters start booking slots."
+          className="border-2 border-dashed rounded-2xl bg-card py-20"
+        />
       ) : (
         <Tabs defaultValue={Object.keys(grouped)[0]} className="w-full">
           <TabsList className="mb-6">

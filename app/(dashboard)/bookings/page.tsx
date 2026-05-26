@@ -10,18 +10,18 @@ import { toast } from 'sonner';
 import { Calendar, Home, MapPin, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
+import { EmptyState } from '@/components/shared/EmptyState';
+
 const canRenterCancel = (status: string) => ['pending', 'confirmed'].includes(status);
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/bookings')
       .then((res) => res.json())
       .then(({ data }) => {
         setBookings(data || []);
-        setLoading(false);
       });
   }, []);
 
@@ -58,8 +58,6 @@ export default function BookingsPage() {
     return <Badge variant="outline" className={variants[status] || 'bg-gray-100'}>{status.replace('_', ' ')}</Badge>;
   };
 
-  if (loading) return <div>Loading...</div>;
-
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
@@ -75,14 +73,16 @@ export default function BookingsPage() {
         
         <TabsContent value="upcoming" className="space-y-4">
           {upcoming.length === 0 ? (
-            <div className="text-center py-16 border rounded-xl bg-card">
-              <Home className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">No upcoming bookings</h3>
-              <p className="text-muted-foreground mb-6">Find your next home today.</p>
-              <Button asChild>
-                <a href="/listings">Find a property</a>
-              </Button>
-            </div>
+            <EmptyState 
+              icon={Calendar}
+              title="No upcoming bookings"
+              description="You haven't scheduled any property viewings yet. Browse our listings to find your next home."
+              action={{
+                label: "Find a property",
+                href: "/listings"
+              }}
+              className="border-2 border-dashed rounded-2xl bg-card"
+            />
           ) : upcoming.map(b => (
             <Card key={b.id} className="shadow-sm">
               <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">

@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Plus, Trash2, Upload, ChevronRight, ChevronLeft, Check, Camera, ListChecks, Building2, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
+import { useFormPersist } from '@/lib/hooks/useFormPersist';
+
 const STEPS = [
   { id: 1, title: 'Basic Info', icon: Building2 },
   { id: 2, title: 'Photos', icon: Camera },
@@ -19,23 +21,37 @@ const STEPS = [
   { id: 5, title: 'Review', icon: Check },
 ];
 
+interface FormData {
+  title: string;
+  description: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  district: string;
+  images: string[];
+  amenity_ids: string[];
+  units: any[];
+}
+
+const INITIAL_FORM_DATA: FormData = {
+  title: '',
+  description: '',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  district: '',
+  images: [],
+  amenity_ids: [],
+  units: [{ name: '', unit_type: 'room', price_per_month: 0, total_capacity: 1, gender_restriction: 'mixed', available_from: new Date().toISOString().split('T')[0] }]
+};
+
 export default function NewListingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [amenities, setAmenities] = useState<any[]>([]);
   
-  const [formData, setFormData] = useState<any>({
-    title: '',
-    description: '',
-    address_line1: '',
-    address_line2: '',
-    city: '',
-    district: '',
-    images: [],
-    amenity_ids: [],
-    units: [{ name: '', unit_type: 'room', price_per_month: 0, total_capacity: 1, gender_restriction: 'mixed', available_from: new Date().toISOString().split('T')[0] }]
-  });
+  const { values: formData, setValues: setFormData, clearPersisted } = useFormPersist('new_listing', INITIAL_FORM_DATA);
 
   useEffect(() => {
     fetch('/api/amenities')
@@ -148,6 +164,7 @@ export default function NewListingPage() {
       }
 
       toast.success('Listing created successfully!', { id: toastId });
+      clearPersisted();
       router.push('/landlord/listings');
     } catch (error: any) {
       toast.error(error.message || 'Something went wrong. Please try again.', { id: toastId });
@@ -194,12 +211,12 @@ export default function NewListingPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address1">Address Line 1</Label>
-                  <Input id="address1" placeholder="Street address" value={formData.address_line1} onChange={e => updateField('address_line1', e.target.value)} />
+                  <Label htmlFor="address_line1">Address Line 1</Label>
+                  <Input id="address_line1" placeholder="Street address" value={formData.address_line1} onChange={e => updateField('address_line1', e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address2">Address Line 2 (Optional)</Label>
-                  <Input id="address2" placeholder="Apartment, suite, unit, etc." value={formData.address_line2} onChange={e => updateField('address_line2', e.target.value)} />
+                  <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
+                  <Input id="address_line2" placeholder="Apartment, suite, unit, etc." value={formData.address_line2} onChange={e => updateField('address_line2', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
@@ -227,7 +244,7 @@ export default function NewListingPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="border-2 border-dashed rounded-xl p-10 text-center space-y-4 hover:bg-muted/50 transition-colors cursor-pointer relative">
-                <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
+                <input id="image-upload" type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" aria-label="Upload property photos" />
                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
                   <Upload className="w-6 h-6" />
                 </div>
@@ -241,8 +258,8 @@ export default function NewListingPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {formData.images.map((url: string, i: number) => (
                     <div key={url} className="relative group aspect-square rounded-lg overflow-hidden border">
-                      <Image src={url} alt={`Upload ${i}`} fill className="object-cover" />
-                      <button onClick={() => removeImage(url)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Image src={url} alt={`${formData.title}, upload ${i + 1}`} fill className="object-cover" />
+                      <button onClick={() => removeImage(url)} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Remove image">
                         <Trash2 className="w-4 h-4" />
                       </button>
                       {i === 0 && <span className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded uppercase font-bold">Cover</span>}
@@ -275,12 +292,13 @@ export default function NewListingPage() {
                     className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${formData.amenity_ids.includes(amenity.id) ? 'bg-primary/10 border-primary shadow-sm' : 'hover:border-primary/50'}`}
                   >
                     <input 
+                      id={`amenity-${amenity.id}`}
                       type="checkbox" 
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       checked={formData.amenity_ids.includes(amenity.id)} 
                       readOnly 
                     />
-                    <span className="text-sm font-medium">{amenity.name}</span>
+                    <Label htmlFor={`amenity-${amenity.id}`} className="text-sm font-medium cursor-pointer">{amenity.name}</Label>
                   </div>
                 ))}
               </div>
@@ -308,17 +326,17 @@ export default function NewListingPage() {
             <CardContent className="space-y-6">
               {formData.units.map((unit: any, index: number) => (
                 <div key={index} className="p-6 border rounded-xl space-y-4 relative bg-muted/30">
-                  <button onClick={() => removeUnit(index)} className="absolute top-4 right-4 text-muted-foreground hover:text-destructive">
+                  <button onClick={() => removeUnit(index)} className="absolute top-4 right-4 text-muted-foreground hover:text-destructive" aria-label="Remove unit">
                     <Trash2 className="w-5 h-5" />
                   </button>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Unit Name</Label>
-                      <Input placeholder="e.g. Bedroom 1" value={unit.name} onChange={e => updateUnit(index, 'name', e.target.value)} />
+                      <Label htmlFor={`unit-name-${index}`}>Unit Name</Label>
+                      <Input id={`unit-name-${index}`} placeholder="e.g. Bedroom 1" value={unit.name} onChange={e => updateUnit(index, 'name', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Price (ZMW / month)</Label>
-                      <Input type="number" value={unit.price_per_month} onChange={e => updateUnit(index, 'price_per_month', parseFloat(e.target.value))} />
+                      <Label htmlFor={`unit-price-${index}`}>Price (ZMW / month)</Label>
+                      <Input id={`unit-price-${index}`} type="number" value={unit.price_per_month} onChange={e => updateUnit(index, 'price_per_month', parseFloat(e.target.value))} />
                     </div>
                     <div className="space-y-2">
                       <Label>Unit Type</Label>
@@ -328,8 +346,9 @@ export default function NewListingPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Gender Restriction</Label>
+                      <Label htmlFor={`unit-gender-${index}`}>Gender Preference</Label>
                       <select 
+                        id={`unit-gender-${index}`}
                         className="w-full border rounded-md h-9 px-3 text-sm"
                         value={unit.gender_restriction}
                         onChange={e => updateUnit(index, 'gender_restriction', e.target.value)}
@@ -378,7 +397,7 @@ export default function NewListingPage() {
                   </div>
                 </div>
                 <div className="relative aspect-video rounded-xl overflow-hidden border">
-                  <Image src={formData.images[0] || '/placeholder.jpg'} alt="Preview" fill className="object-cover" />
+                  <Image src={formData.images[0] || '/placeholder.jpg'} alt={`${formData.title} preview`} fill className="object-cover" />
                 </div>
               </div>
               
@@ -407,3 +426,4 @@ export default function NewListingPage() {
     </div>
   );
 }
+

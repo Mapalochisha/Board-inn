@@ -41,7 +41,9 @@ export async function GET(request: NextRequest) {
           .update({ role })
           .eq('id', session.user.id)
       }
-      return NextResponse.redirect(new URL('/bookings', requestUrl.origin))
+      
+      const redirectPath = role === 'landlord' ? '/landlord/listings' : '/bookings'
+      return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
     }
   }
 

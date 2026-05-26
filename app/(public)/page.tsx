@@ -3,6 +3,15 @@ import { Search, Calendar, Home } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { HeroCarousel } from "@/components/landing/HeroCarousel";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Board-inn — Find Student Housing in Zambia",
+  description: "Secure and affordable boarding houses and bed spaces for students and young professionals.",
+  openGraph: {
+    images: [{ url: "/og-image.jpg" }],
+  },
+};
 
 async function getRecentProperties() {
   const supabase = await createClient()

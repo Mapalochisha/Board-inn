@@ -14,16 +14,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check landlord role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    if (!profile || profile.role !== "landlord") {
+    // Check role (Landlord or Admin)
+    const role = session.user.user_metadata?.role;
+    if (role !== "landlord" && role !== "admin") {
       return NextResponse.json(
-        { data: null, error: "Forbidden - Landlord only" },
+        { data: null, error: "Forbidden - Landlord or Admin role required" },
         { status: 403 }
       );
     }

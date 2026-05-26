@@ -58,16 +58,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check landlord role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    if (!profile || profile.role !== "landlord") {
+    // Check role (Landlord or Admin)
+    const role = session.user.user_metadata?.role;
+    if (role !== "landlord" && role !== "admin") {
       return NextResponse.json(
-        { data: null, error: "Forbidden - Landlord role required" },
+        { data: null, error: "Forbidden - Landlord or Admin role required" },
         { status: 403 }
       );
     }
@@ -82,26 +77,39 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if landlord owns the property
-    const { data: property, error: propError } = await supabase
-      .from("properties")
-      .select("id")
-      .eq("id", result.data.property_id)
-      .eq("landlord_id", session.user.id)
-      .single();
+    // Check ownership (Admins bypass)
+    if (role !== "admin") {
+      const { data: property, error: propError } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("id", result.data.property_id)
+        .eq("landlord_id", session.user.id)
+        .single();
 
-    if (propError || !property) {
-      return NextResponse.json(
-        { data: null, error: "Property not found or access denied" },
-        { status: 403 }
-      );
+      if (propError || !property) {
+        return NextResponse.json(
+          { data: null, error: "Property not found or access denied" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Get the actual landlord_id for the slot
+    let slotLandlordId = session.user.id;
+    if (role === "admin") {
+        const { data: prop } = await supabase
+            .from("properties")
+            .select("landlord_id")
+            .eq("id", result.data.property_id)
+            .single();
+        if (prop) slotLandlordId = prop.landlord_id;
     }
 
     const { data, error } = await supabase
       .from("viewing_slots")
       .insert({
         ...result.data,
-        landlord_id: session.user.id,
+        landlord_id: slotLandlordId,
         status: "available",
         current_viewers: 0,
       })

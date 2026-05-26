@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
     const { role } = result.data;
 
+    // 1. Update Profile table
     const { error: updateError } = await supabaseAdmin
       .from("profiles")
       .update({ role })
@@ -41,6 +42,18 @@ export async function POST(request: Request) {
         { data: null, error: updateError.message },
         { status: 500 }
       );
+    }
+
+    // 2. Update Auth Metadata (to keep them in sync for middleware/APIs)
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      session.user.id,
+      { user_metadata: { role } }
+    );
+
+    if (authError) {
+        // Log but don't fail the whole request if profile update succeeded? 
+        // Actually, we want them in sync.
+        console.error("Failed to update auth metadata:", authError);
     }
 
     return NextResponse.json({

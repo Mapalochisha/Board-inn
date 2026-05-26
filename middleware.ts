@@ -58,13 +58,33 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes logic
-  const protectedPaths = ['/bookings', '/profile', '/landlord'];
-  const isProtected = protectedPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  const role = user?.user_metadata?.role || 'renter';
+  const path = request.nextUrl.pathname;
+
+  // 1. Auth Protection: Ensure user is logged in for protected routes
+  const protectedPaths = ['/bookings', '/profile', '/landlord', '/admin'];
+  const isProtected = protectedPaths.some(p => path.startsWith(p));
+  
   if (isProtected && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // 2. Role-Based Access Control (RBAC)
+  if (user) {
+    // Admin only routes
+    if (path.startsWith('/admin') && role !== 'admin') {
+      return NextResponse.redirect(new URL(role === 'landlord' ? '/landlord/listings' : '/bookings', request.url));
+    }
+
+    // Landlord only routes (Admins allowed)
+    if (path.startsWith('/landlord') && role !== 'landlord' && role !== 'admin') {
+      return NextResponse.redirect(new URL('/bookings', request.url));
+    }
+
+    // Renter only routes (Admins allowed)
+    if (path.startsWith('/bookings') && role !== 'renter' && role !== 'admin') {
+      return NextResponse.redirect(new URL('/landlord/listings', request.url));
+    }
   }
 
   return response;

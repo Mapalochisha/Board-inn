@@ -7,16 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Building2, Eye, Calendar, Pencil } from 'lucide-react';
 
+import { EmptyState } from '@/components/shared/EmptyState';
+
 export default function LandlordListingsPage() {
   const [properties, setProperties] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/properties?landlord=true')
       .then((res) => res.json())
       .then((json) => {
         setProperties(json.data || []);
-        setLoading(false);
       });
   }, []);
 
@@ -29,8 +29,6 @@ export default function LandlordListingsPage() {
     return <Badge variant="outline" className={variants[status] || 'bg-gray-100'}>{status}</Badge>;
   };
 
-  if (loading) return <div>Loading...</div>;
-
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -38,7 +36,7 @@ export default function LandlordListingsPage() {
           <h1 className="text-3xl font-bold tracking-tight">My Listings</h1>
           <p className="text-muted-foreground mt-1">Manage all your properties and viewing schedules.</p>
         </div>
-        <Button asChild size="lg" className="bg-primary">
+        <Button asChild size="lg" className="bg-primary hover:bg-primary/90 rounded-xl shadow-lg shadow-primary/20">
           <Link href="/landlord/listings/new">
             <PlusCircle className="w-4 h-4 mr-2" />
             Add New Listing
@@ -47,14 +45,16 @@ export default function LandlordListingsPage() {
       </div>
 
       {properties.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
-          <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">No listings found</h3>
-          <p className="text-muted-foreground mb-6">Start by creating your first property listing.</p>
-          <Button asChild>
-            <Link href="/dashboard/landlord/listings/new">Create your first listing</Link>
-          </Button>
-        </div>
+        <EmptyState 
+          icon={Building2}
+          title="No listings found"
+          description="You haven't added any properties yet. Start by creating your first listing to attract tenants."
+          action={{
+            label: "Create your first listing",
+            href: "/landlord/listings/new"
+          }}
+          className="border-2 border-dashed rounded-2xl bg-card py-20"
+        />
       ) : (
         <div className="border rounded-xl shadow-sm overflow-hidden bg-card">
           <Table>

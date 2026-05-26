@@ -11,22 +11,35 @@ export async function GET(request: Request) {
   const unitType = searchParams.get("unit_type");
   const genderRestriction = searchParams.get("gender_restriction");
   const search = searchParams.get("search");
+  const isLandlordView = searchParams.get("landlord") === "true";
 
   const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
 
   let query = supabase
     .from("properties")
     .select(`
-      id, title, city, district, cover_image_url,
+      id, title, city, district, cover_image_url, status,
       units (
+        id,
         price_per_month,
         is_available,
         unit_type,
         gender_restriction
       )
     `)
-    .eq("status", "published")
     .is("deleted_at", null);
+
+  // If landlord view, filter by ownership
+  if (isLandlordView) {
+    if (!session) {
+      return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+    }
+    query = query.eq("landlord_id", session.user.id);
+  } else {
+    // Public view: only published
+    query = query.eq("status", "published");
+  }
 
   if (city) {
     query = query.ilike("city", `%${city}%`);
@@ -94,16 +107,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check landlord role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    if (!profile || profile.role !== "landlord") {
+    // Check role (Landlord or Admin)
+    const role = session.user.user_metadata?.role;
+    if (role !== "landlord" && role !== "admin") {
       return NextResponse.json(
-        { data: null, error: "Forbidden - Landlord role required" },
+        { data: null, error: "Forbidden - Landlord or Admin role required" },
         { status: 403 }
       );
     }

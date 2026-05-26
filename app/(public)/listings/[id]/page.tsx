@@ -4,24 +4,82 @@ import { AmenityBadge } from "@/components/listings/AmenityBadge";
 import { UnitTypeTag } from "@/components/listings/UnitTypeTag";
 import { ViewingSlotPicker } from "@/components/bookings/ViewingSlotPicker";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
 
 async function getProperty(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/properties/${id}`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const { data } = await res.json();
-  return data;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select(`
+      *,
+      units (*),
+      amenities:property_amenities (
+        amenity:amenities (*)
+      ),
+      landlord:profiles (
+        full_name,
+        avatar_url,
+        created_at
+      )
+    `)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .single();
+
+  if (error || !data) return null;
+
+  // Flatten amenities to match the previous API response format
+  return {
+    ...data,
+    amenities: data.amenities.map((item: any) => item.amenity),
+  };
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const property = await getProperty(params.id);
+  if (!property) return { title: "Listing Not Found — Board-inn" };
+
+  const title = `${property.title} — Board-inn`;
+  const description = property.description?.substring(0, 155) || "View this listing on Board-inn.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: property.cover_image_url ? [{ url: property.cover_image_url }] : [],
+    },
+  };
 }
 
 export default async function PropertyPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
+  
+  let user = null;
+  if (session) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+    user = profile;
+  }
+
   const property = await getProperty(params.id);
   if (!property) notFound();
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-10 space-y-12 pb-24">
       <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border">
-        <Image src={property.cover_image_url || "/placeholder.jpg"} alt={property.title} fill className="object-cover" />
+        <Image 
+          src={property.cover_image_url || "/placeholder.jpg"} 
+          alt={`${property.title}, primary listing photo`} 
+          fill 
+          priority={true}
+          className="object-cover" 
+        />
       </div>
       
       <section>
@@ -62,19 +120,9 @@ export default async function PropertyPage({ params }: { params: { id: string } 
         <ViewingSlotPicker 
           propertyId={params.id} 
           units={property.units} 
-          isLoggedIn={!!session} 
+          user={user} 
         />
       </section>
-
-      {/* Sticky Mobile Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-background border-t shadow-[0_-4px_10px_-5px_rgba(0,0,0,0.1)] z-50">
-        <a 
-          href="#viewing-slots" 
-          className="block w-full text-center bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors"
-        >
-          Book a Viewing
-        </a>
-      </div>
     </main>
   );
 }

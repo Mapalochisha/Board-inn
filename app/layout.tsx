@@ -7,8 +7,20 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Board-inn — Student Housing",
-  description: "Simplifying student housing bookings.",
+  title: {
+    default: "Board-inn — Student Housing Platform",
+    template: "%s | Board-inn"
+  },
+  description: "Secure and affordable boarding houses and bed spaces for students in Zambia. Book viewings and find your next home with ease.",
+  keywords: ["student housing", "boarding house", "Zambia", "Lusaka", "Copperbelt", "university accommodation"],
+  authors: [{ name: "Board-inn Team" }],
+  creator: "Board-inn",
+  publisher: "Board-inn",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

@@ -28,10 +28,10 @@ interface Slot {
 interface ViewingSlotPickerProps {
   propertyId: string;
   units: Unit[];
-  isLoggedIn: boolean;
+  user: any;
 }
 
-export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlotPickerProps) {
+export function ViewingSlotPicker({ propertyId, units, user }: ViewingSlotPickerProps) {
   const router = useRouter();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,9 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
   const [notes, setNotes] = useState('');
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isLoggedIn = !!user;
+  const isRenter = user?.role === 'renter';
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -58,13 +61,39 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
 
   if (!isLoggedIn) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="p-8 text-center space-y-4">
-          <p className="text-muted-foreground">Sign in to book a viewing for this property.</p>
-          <div className="flex justify-center gap-3">
-            <Button onClick={() => router.push('/login')}>Log In</Button>
-            <Button variant="outline" onClick={() => router.push('/register')}>Register</Button>
-          </div>
+      <>
+        <Card className="border-dashed">
+          <CardContent className="p-8 text-center space-y-4">
+            <p className="text-muted-foreground">Sign in to book a viewing for this property.</p>
+            <div className="flex justify-center gap-3">
+              <Button onClick={() => router.push('/login')}>Log In</Button>
+              <Button variant="outline" onClick={() => router.push('/register')}>Register</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sticky Mobile Bar for Logged Out */}
+        <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-white dark:bg-slate-950 border-t shadow-[0_-8px_20px_-10px_rgba(0,0,0,0.15)] z-50">
+          <Button 
+            asChild
+            className="w-full bg-green-600 text-white py-6 rounded-xl font-bold text-lg hover:bg-green-700 h-auto"
+          >
+            <a href="#viewing-slots">Book a Viewing</a>
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (!isRenter) {
+    return (
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="p-8 text-center space-y-2">
+          <AlertCircle className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+          <h3 className="font-semibold text-lg">Account Type Restricted</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            You are currently signed in as a <span className="font-bold text-foreground">{user.role}</span>. Only <span className="font-bold text-foreground">renter</span> accounts can book viewing slots.
+          </p>
         </CardContent>
       </Card>
     );
@@ -113,7 +142,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20 md:pb-0">
       {Object.entries(groupedSlots).map(([date, dateSlots]) => (
         <div key={date} className="space-y-4">
           <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
@@ -126,11 +155,11 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
               const isFull = remaining <= 0;
 
               return (
-                <Card key={slot.id} className={`transition-all ${isFull ? 'bg-muted/50 border-none' : 'hover:border-primary/50'}`}>
+                <Card key={slot.id} className={`transition-all ${isFull ? 'bg-muted border-none opacity-60' : 'hover:border-green-600/50 hover:shadow-md'}`}>
                   <CardContent className="p-5 space-y-4">
                     <div className="flex justify-between items-start">
                       <p className="font-bold text-lg">{formatSlotTime(slot.start_time, slot.end_time)}</p>
-                      {isFull && <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full uppercase tracking-wider font-semibold">Full</span>}
+                      {isFull && <span className="text-xs bg-muted-foreground/20 text-muted-foreground px-2 py-1 rounded-full uppercase tracking-wider font-semibold">Full</span>}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="w-4 h-4" />
@@ -140,7 +169,7 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
                       <Button 
                         onClick={() => setSelectedSlot(slot)} 
                         variant={selectedSlot?.id === slot.id ? 'default' : 'outline'}
-                        className="w-full"
+                        className={`w-full ${selectedSlot?.id === slot.id ? 'bg-green-600 hover:bg-green-700' : ''}`}
                       >
                         {selectedSlot?.id === slot.id ? 'Selected' : 'Select'}
                       </Button>
@@ -154,14 +183,14 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
       ))}
 
       {selectedSlot && (
-        <Card className="border-primary/20 bg-primary/5 shadow-sm mt-8">
+        <Card className="border-green-600/20 bg-green-50 dark:bg-green-950/20 shadow-md mt-8">
           <CardHeader>
-            <CardTitle className="text-lg">Confirm Your Booking</CardTitle>
+            <CardTitle className="text-xl font-bold text-green-700 dark:text-green-400">Confirm Your Booking</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-background p-4 rounded-lg border space-y-2">
-              <p className="text-sm font-medium">Selected Slot:</p>
-              <p className="font-semibold">{new Date(selectedSlot.slot_date).toLocaleDateString()} at {formatSlotTime(selectedSlot.start_time, selectedSlot.end_time)}</p>
+            <div className="bg-white dark:bg-background p-5 rounded-xl border shadow-sm space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Selected Slot:</p>
+              <p className="font-bold text-lg">{new Date(selectedSlot.slot_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at {formatSlotTime(selectedSlot.start_time, selectedSlot.end_time)}</p>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Unit preference</label>
@@ -198,6 +227,26 @@ export function ViewingSlotPicker({ propertyId, units, isLoggedIn }: ViewingSlot
           </CardContent>
         </Card>
       )}
+
+      {/* Dynamic Sticky Mobile Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-white dark:bg-slate-950 border-t shadow-[0_-8px_20px_-10px_rgba(0,0,0,0.15)] z-50">
+        {selectedSlot ? (
+          <Button 
+            onClick={handleConfirm} 
+            disabled={isBooking}
+            className="w-full bg-green-600 text-white py-6 rounded-xl font-bold text-lg hover:bg-green-700 h-auto"
+          >
+            {isBooking ? 'Confirming...' : 'Confirm Booking'}
+          </Button>
+        ) : (
+          <Button 
+            asChild
+            className="w-full bg-green-600 text-white py-6 rounded-xl font-bold text-lg hover:bg-green-700 h-auto"
+          >
+            <a href="#viewing-slots">Book a Viewing</a>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
