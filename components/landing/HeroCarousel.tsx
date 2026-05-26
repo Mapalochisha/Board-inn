@@ -15,7 +15,7 @@ export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    fetch("/api/admin/settings")
+    fetch("/api/admin/settings?key=hero_images")
       .then((res) => res.json())
       .then((data) => {
         if (data.data && data.data.length > 0) {
