@@ -31,15 +31,7 @@ export default function LoginPage() {
       setError(signInError.message);
       setLoading(false);
     } else {
-      // Get role to redirect correctly
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", signInData.user.id)
-        .single();
-      
-      const role = profile?.role || signInData.user.user_metadata?.role || "renter";
-      router.push(role === "landlord" ? "/landlord/listings" : "/bookings");
+      router.push("/");
     }
   };
 

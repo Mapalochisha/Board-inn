@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
           .eq('id', session.user.id)
       }
       
-      const redirectPath = role === 'landlord' ? '/landlord/listings' : '/bookings'
+      const redirectPath = '/'
       return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
     }
   }
