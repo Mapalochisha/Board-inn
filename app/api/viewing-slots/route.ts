@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     .from("viewing_slots")
     .select("*")
     .eq("property_id", propertyId)
-    .eq("status", "available")
+    .in("status", ["available", "full"])
     .gte("slot_date", new Date().toISOString().split("T")[0]);
 
   if (fromDate) {

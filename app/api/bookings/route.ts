@@ -153,30 +153,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: "You already have a booking for this property on this day" }, { status: 409 });
     }
 
-    // Atomic claim using RPC (MUST BE IN THIS ORDER)
-    const { data: claimed, error: claimError } = await supabase.rpc("claim_viewing_slot", {
+    // Atomic claim and insert using RPC
+    const { data: booking, error: bookingError } = await supabase.rpc("create_viewing_booking", {
       p_slot_id: slot_id,
+      p_renter_id: session.user.id,
+      p_property_id: property_id,
+      p_unit_id: unit_id,
+      p_renter_notes: renter_notes,
     });
 
-    if (claimError || claimed === false) {
-      return NextResponse.json({ data: null, error: "This slot just became fully booked. Please choose another time." }, { status: 409 });
-    }
-
-    // INSERT into viewing_bookings with status='pending'
-    const { data: booking, error: bookingError } = await supabase
-      .from("viewing_bookings")
-      .insert({
-        slot_id,
-        renter_id: session.user.id,
-        property_id,
-        unit_id,
-        renter_notes,
-        status: "pending",
-      })
-      .select()
-      .single();
-
     if (bookingError) {
+      if (bookingError.message.includes("Slot is full")) {
+        return NextResponse.json({ data: null, error: "This slot just became fully booked. Please choose another time." }, { status: 409 });
+      }
       return NextResponse.json({ data: null, error: bookingError.message }, { status: 500 });
     }
 

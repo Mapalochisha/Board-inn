@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatSlotTime } from '@/lib/booking-utils';
 import { toast } from 'sonner';
 import { Calendar, Home, MapPin, XCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 
 import { EmptyState } from '@/components/shared/EmptyState';
 
@@ -115,7 +115,9 @@ export default function BookingsPage() {
                         <DialogDescription>Are you sure you want to cancel your viewing at {b.property.title}? This action cannot be undone.</DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
-                        <Button variant="ghost" type="button">Keep Booking</Button>
+                        <DialogClose asChild>
+                          <Button variant="ghost" type="button">Keep Booking</Button>
+                        </DialogClose>
                         <Button variant="destructive" onClick={() => handleCancel(b.id)}>Confirm Cancellation</Button>
                       </DialogFooter>
                     </DialogContent>

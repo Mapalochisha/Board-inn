@@ -133,13 +133,9 @@ export async function PATCH(
       // Check if we need to restore (only if the previous status was something that counted towards current_viewers)
       // Pending and Confirmed are usually what we consider 'active' claims
       if (["pending", "confirmed"].includes(booking.status)) {
-        const { error: slotUpdateError } = await supabase
-          .from("viewing_slots")
-          .update({
-            current_viewers: Math.max(0, booking.slot.current_viewers - 1),
-            status: "available" // Always set to available if we just removed a viewer from a full slot
-          })
-          .eq("id", booking.slot_id);
+        const { error: slotUpdateError } = await supabase.rpc("release_viewing_slot", {
+          p_slot_id: booking.slot_id
+        });
 
         if (slotUpdateError) {
           console.error("Failed to restore slot viewers:", slotUpdateError);

@@ -162,7 +162,65 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- SECTION 12: ROW LEVEL SECURITY
+-- SECTION 12: RELEASE SLOT RPC
+CREATE OR REPLACE FUNCTION public.release_viewing_slot(p_slot_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.viewing_slots
+  SET 
+    current_viewers = GREATEST(0, current_viewers - 1),
+    status = CASE 
+      WHEN status = 'full' THEN 'available' 
+      ELSE status 
+    END
+  WHERE id = p_slot_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- SECTION 13: TRANSACTIONAL BOOKING RPC
+CREATE OR REPLACE FUNCTION public.create_viewing_booking(
+  p_slot_id UUID,
+  p_renter_id UUID,
+  p_property_id UUID,
+  p_unit_id UUID DEFAULT NULL,
+  p_renter_notes TEXT DEFAULT NULL
+)
+RETURNS public.viewing_bookings AS $$
+DECLARE
+  v_booking public.viewing_bookings;
+  v_claimed boolean;
+BEGIN
+  -- 1. Try to claim the slot
+  v_claimed := public.claim_viewing_slot(p_slot_id);
+  
+  IF NOT v_claimed THEN
+    RAISE EXCEPTION 'Slot is full or unavailable';
+  END IF;
+
+  -- 2. Insert the booking
+  INSERT INTO public.viewing_bookings (
+    slot_id,
+    renter_id,
+    property_id,
+    unit_id,
+    renter_notes,
+    status
+  )
+  VALUES (
+    p_slot_id,
+    p_renter_id,
+    p_property_id,
+    p_unit_id,
+    p_renter_notes,
+    'pending'
+  )
+  RETURNING * INTO v_booking;
+
+  RETURN v_booking;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- SECTION 14: ROW LEVEL SECURITY
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.property_amenities ENABLE ROW LEVEL SECURITY;
