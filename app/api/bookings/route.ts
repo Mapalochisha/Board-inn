@@ -98,9 +98,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log("POST /api/bookings request body:", body);
     const result = createBookingSchema.safeParse(body);
-
+    
     if (!result.success) {
+      console.log("Validation failed:", result.error.format());
       return NextResponse.json(
         { data: null, error: result.error.issues[0].message },
         { status: 400 }

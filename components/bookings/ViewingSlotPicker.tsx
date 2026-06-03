@@ -127,16 +127,20 @@ export function ViewingSlotPicker({ propertyId, units, user }: ViewingSlotPicker
       }),
     });
 
+    console.log('Booking response status:', res.status);
+    const result = await res.json();
+    console.log('Booking response body:', result);
+
     if (res.status === 201) {
       toast.success('Booking confirmed! Check your dashboard.');
       router.push('/bookings');
     } else if (res.status === 409) {
-      setError('This slot is no longer available. Please select another.');
+      setError(result.error || 'This slot is no longer available. Please select another.');
       setIsBooking(false);
     } else if (res.status === 401) {
       router.push('/login');
     } else {
-      toast.error('Something went wrong. Please try again.');
+      toast.error(result.error || 'Something went wrong. Please try again.');
       setIsBooking(false);
     }
   };
