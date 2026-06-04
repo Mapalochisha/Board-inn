@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Calendar, Users, CheckCircle2, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase/client';
 
 interface Unit {
   id: string;
@@ -31,8 +32,9 @@ interface ViewingSlotPickerProps {
   user: any;
 }
 
-export function ViewingSlotPicker({ propertyId, units, user }: ViewingSlotPickerProps) {
+export function ViewingSlotPicker({ propertyId, units, user: initialUser }: ViewingSlotPickerProps) {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState(initialUser);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -41,19 +43,67 @@ export function ViewingSlotPicker({ propertyId, units, user }: ViewingSlotPicker
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isLoggedIn = !!user;
-  const isRenter = user?.role === 'renter';
+  const isLoggedIn = !!currentUser;
+  const isRenter = currentUser?.role === 'renter' || currentUser?.user_metadata?.role === 'renter';
 
   useEffect(() => {
-    if (!isLoggedIn) return;
+    const checkUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      console.log('ViewingSlotPicker client-side auth check:', authUser);
+      
+      if (authUser && !currentUser) {
+        console.log('User found on client but not from server, fetching profile...');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        
+        if (profile) {
+          console.log('Profile found on client:', profile);
+          setCurrentUser(profile);
+        } else {
+          console.log('Profile not found on client, using auth user metadata');
+          setCurrentUser(authUser);
+        }
+      }
+    };
+    
+    checkUser();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed in ViewingSlotPicker:', _event, session?.user);
+      if (session?.user) {
+        // We might want to fetch profile here too, but for now just setting auth user
+        // to avoid incorrect "not logged in" state.
+        if (!currentUser || currentUser.id !== session.user.id) {
+           setCurrentUser(session.user as any);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    });
 
+    return () => subscription.unsubscribe();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.log('Not logged in, skipping slots fetch');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching slots for property:', propertyId);
     fetch(`/api/viewing-slots?property_id=${propertyId}`)
       .then((res) => res.json())
       .then((json) => {
+        console.log('Fetched slots:', json.data);
         setSlots(json.data || []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error fetching slots:', err);
         setLoading(false);
         toast.error('Failed to load viewing slots');
       });
