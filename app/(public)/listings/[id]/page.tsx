@@ -81,6 +81,27 @@ export default async function PropertyPage({ params }: { params: { id: string } 
           className="object-cover" 
         />
       </div>
+
+      {property.images && property.images.length > 1 && (
+        <section>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {property.images.map((url: string, i: number) => (
+              <div 
+                key={url} 
+                className="relative aspect-square rounded-xl overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => {/* Potential for a lightbox later */}}
+              >
+                <Image 
+                  src={url} 
+                  alt={`${property.title}, photo ${i + 1}`} 
+                  fill 
+                  className="object-cover" 
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       
       <section>
         <h1 className="text-4xl font-extrabold mb-3 tracking-tight">{property.title}</h1>
