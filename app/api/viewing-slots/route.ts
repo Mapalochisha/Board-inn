@@ -59,13 +59,29 @@ export async function POST(request: Request) {
       data: { session },
     } = await supabase.auth.getSession();
 
+    console.log("POST /api/viewing-slots - Session:", session?.user?.id, "Role:", session?.user?.user_metadata?.role);
+
     if (!session) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
     // Check role (Landlord or Admin)
-    const role = session.user.user_metadata?.role;
+    let role = session.user.user_metadata?.role;
+    
+    if (!role) {
+      console.log("Role missing from metadata, checking profiles table...");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+      role = profile?.role;
+    }
+
+    console.log("POST /api/viewing-slots - User:", session.user.id, "Final Role:", role);
+
     if (role !== "landlord" && role !== "admin") {
+      console.log("Forbidden: User is not landlord or admin. Role is:", role);
       return NextResponse.json(
         { data: null, error: "Forbidden - Landlord or Admin role required" },
         { status: 403 }
@@ -73,9 +89,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log("POST /api/viewing-slots - Request body:", body);
     const result = createSlotSchema.safeParse(body);
 
     if (!result.success) {
+      console.log("Validation failed:", result.error.format());
       return NextResponse.json(
         { data: null, error: result.error.issues[0].message },
         { status: 400 }
@@ -92,6 +110,7 @@ export async function POST(request: Request) {
         .single();
 
       if (propError || !property) {
+        console.log("Property check failed for landlord:", session.user.id, "Property:", result.data.property_id, "Error:", propError);
         return NextResponse.json(
           { data: null, error: "Property not found or access denied" },
           { status: 403 }
@@ -110,6 +129,8 @@ export async function POST(request: Request) {
         if (prop) slotLandlordId = prop.landlord_id;
     }
 
+    console.log("Inserting slot for landlord:", slotLandlordId);
+
     const { data, error } = await supabase
       .from("viewing_slots")
       .insert({
@@ -122,6 +143,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
+      console.error("Supabase insert error:", error);
       if (error.code === "23505") {
         return NextResponse.json(
           { data: null, error: "A slot already exists for this property at this date and time" },
@@ -131,8 +153,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: error.message }, { status: 500 });
     }
 
+    console.log("Slot created successfully:", data.id);
     return NextResponse.json({ data, error: null }, { status: 201 });
   } catch (error) {
+    console.error("Internal Server Error in POST /api/viewing-slots:", error);
     return NextResponse.json({ data: null, error: "Internal Server Error" }, { status: 500 });
   }
 }

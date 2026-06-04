@@ -42,12 +42,15 @@ export default function ManageSlotsPage({ params }: { params: { id: string } }) 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...newSlot, property_id: params.id }) 
     });
+    
+    const json = await res.json();
+    
     if (res.ok) { 
       toast.success('Viewing slot created successfully'); 
       setNewSlot({ slot_date: '', start_time: '', end_time: '', max_viewers: 5, notes: '' });
       fetchSlots(); 
     } else {
-      toast.error('Failed to create slot');
+      toast.error(json.error || 'Failed to create slot');
     }
     setIsSubmitting(false);
   };
