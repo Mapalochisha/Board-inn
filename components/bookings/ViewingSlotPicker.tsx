@@ -259,10 +259,10 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
             <div className="space-y-2">
               <label className="text-sm font-medium">Unit preference</label>
               <Select onValueChange={setUnitId} defaultValue="whole">
-                <SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-background">
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-slate-900 border-2 shadow-2xl">
                   <SelectItem value="whole">Viewing whole property</SelectItem>
                   {units.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
                 </SelectContent>

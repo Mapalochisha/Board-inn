@@ -36,7 +36,7 @@ export const createSlotSchema = z
 export const createBookingSchema = z.object({
   slot_id: z.string().uuid(),
   property_id: z.string().uuid(),
-  unit_id: z.string().uuid().optional(),
+  unit_id: z.string().uuid().nullable().optional(),
   renter_notes: z.string().max(500).optional(),
 });
 
