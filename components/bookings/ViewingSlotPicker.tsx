@@ -142,7 +142,7 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
           <AlertCircle className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
           <h3 className="font-semibold text-lg">Account Type Restricted</h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            You are currently signed in as a <span className="font-bold text-foreground">{user.role}</span>. Only <span className="font-bold text-foreground">renter</span> accounts can book viewing slots.
+            You are currently signed in as a <span className="font-bold text-foreground">{currentUser.role || currentUser.user_metadata?.role}</span>. Only <span className="font-bold text-foreground">renter</span> accounts can book viewing slots.
           </p>
         </CardContent>
       </Card>
