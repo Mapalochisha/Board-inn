@@ -10,7 +10,7 @@ const roleSchema = z.object({
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getUser();
 
     if (!session) {
       return NextResponse.json(

@@ -51,7 +51,7 @@ export async function PATCH(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getUser();
 
     if (!session) {
       return NextResponse.json(
@@ -105,7 +105,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getUser();
 
   if (!session) {
     return NextResponse.json(

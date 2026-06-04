@@ -12,7 +12,7 @@ export async function PUT(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getUser();
 
     if (!session) {
       return NextResponse.json(

@@ -9,7 +9,7 @@ export async function DELETE(
     const supabase = await createClient();
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await supabase.auth.getUser();
 
     if (!session) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
