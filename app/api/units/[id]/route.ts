@@ -33,9 +33,9 @@ export async function PATCH(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -49,7 +49,7 @@ export async function PATCH(
       .eq("id", params.id)
       .single();
 
-    if (unitError || !unit || (unit.properties as any).landlord_id !== session.user.id) {
+    if (unitError || !unit || (unit.properties as any).landlord_id !== user.id) {
       return NextResponse.json(
         { data: null, error: "Forbidden - You do not own this unit" },
         { status: 403 }
@@ -123,9 +123,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     return NextResponse.json(
       { data: null, error: "Unauthorized" },
       { status: 401 }
@@ -139,7 +139,7 @@ export async function DELETE(
     .eq("id", params.id)
     .single();
 
-  if (unitError || !unit || (unit.properties as any).landlord_id !== session.user.id) {
+  if (unitError || !unit || (unit.properties as any).landlord_id !== user.id) {
     return NextResponse.json(
       { data: null, error: "Forbidden - You do not own this unit" },
       { status: 403 }

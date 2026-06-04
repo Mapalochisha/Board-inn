@@ -33,9 +33,9 @@ export async function POST(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -47,7 +47,7 @@ export async function POST(
       .from("properties")
       .select("id")
       .eq("id", params.id)
-      .eq("landlord_id", session.user.id)
+      .eq("landlord_id", user.id)
       .single();
 
     if (propError || !property) {

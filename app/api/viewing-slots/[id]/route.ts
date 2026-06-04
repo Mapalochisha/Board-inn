@@ -8,10 +8,10 @@ export async function DELETE(
   try {
     const supabase = await createClient();
     const {
-      data: { session },
+      data: { user },
     } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function DELETE(
       return NextResponse.json({ data: null, error: "Slot not found" }, { status: 404 });
     }
 
-    if (slot.landlord_id !== session.user.id) {
+    if (slot.landlord_id !== user.id) {
       return NextResponse.json({ data: null, error: "Forbidden" }, { status: 403 });
     }
 

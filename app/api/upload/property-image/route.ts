@@ -5,9 +5,9 @@ import { uploadPropertyImage } from "@/lib/cloudinary";
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     // Check role (Landlord or Admin)
-    const role = session.user.user_metadata?.role;
+    const role = user.user_metadata?.role;
     if (role !== "landlord" && role !== "admin") {
       return NextResponse.json(
         { data: null, error: "Forbidden - Landlord or Admin role required" },

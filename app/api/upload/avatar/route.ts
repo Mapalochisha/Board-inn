@@ -5,9 +5,9 @@ import { uploadAvatar } from "@/lib/cloudinary";
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -27,13 +27,13 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     
     try {
-      const { url } = await uploadAvatar(buffer, session.user.id);
+      const { url } = await uploadAvatar(buffer, user.id);
       
       // Update profile in DB
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: url })
-        .eq("id", session.user.id);
+        .eq("id", user.id);
 
       if (updateError) throw updateError;
 

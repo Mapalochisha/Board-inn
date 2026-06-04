@@ -10,9 +10,9 @@ const roleSchema = z.object({
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const { error: updateError } = await supabaseAdmin
       .from("profiles")
       .update({ role })
-      .eq("id", session.user.id);
+      .eq("id", user.id);
 
     if (updateError) {
       return NextResponse.json(
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     // 2. Update Auth Metadata (to keep them in sync for middleware/APIs)
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-      session.user.id,
+      user.id,
       { user_metadata: { role } }
     );
 
