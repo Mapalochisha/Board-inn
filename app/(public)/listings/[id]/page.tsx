@@ -3,6 +3,7 @@ import Image from "next/image";
 import { AmenityBadge } from "@/components/listings/AmenityBadge";
 import { UnitTypeTag } from "@/components/listings/UnitTypeTag";
 import { ViewingSlotPicker } from "@/components/bookings/ViewingSlotPicker";
+import { ImageGallery } from "@/components/listings/ImageGallery";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
 
@@ -87,37 +88,7 @@ async function getProperty(id: string) {
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-10 space-y-12 pb-24">
-      <div className="space-y-4">
-        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border">
-          <Image 
-            src={property.cover_image_url || "/placeholder.jpg"} 
-            alt={`${property.title}, primary listing photo`} 
-            fill 
-            priority={true}
-            className="object-cover" 
-          />
-        </div>
-
-        {Array.isArray(property.images) && property.images.length > 1 && (
-          <section>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {property.images.map((url: string, i: number) => (
-                <div 
-                  key={`${url}-${i}`} 
-                  className="relative aspect-square rounded-xl overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
-                >
-                  <Image 
-                    src={url} 
-                    alt={`${property.title}, photo ${i + 1}`} 
-                    fill 
-                    className="object-cover" 
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      <ImageGallery images={property.images} title={property.title} />
       
       <section>
         <h1 className="text-4xl font-extrabold mb-3 tracking-tight">{property.title}</h1>
