@@ -58,29 +58,29 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-    console.log("POST /api/viewing-slots - Session:", session?.user?.id, "Role:", session?.user?.user_metadata?.role);
+    console.log("POST /api/viewing-slots - User:", authUser?.id, "Role:", authUser?.user_metadata?.role);
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
     // Check role (Landlord or Admin)
-    let role = session.user.user_metadata?.role;
+    let role = authUser.user_metadata?.role;
     
     if (!role) {
       console.log("Role missing from metadata, checking profiles table...");
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", session.user.id)
+        .eq("id", authUser.id)
         .single();
       role = profile?.role;
     }
 
-    console.log("POST /api/viewing-slots - User:", session.user.id, "Final Role:", role);
+    console.log("POST /api/viewing-slots - User:", authUser.id, "Final Role:", role);
 
     if (role !== "landlord" && role !== "admin") {
       console.log("Forbidden: User is not landlord or admin. Role is:", role);
@@ -108,11 +108,11 @@ export async function POST(request: Request) {
         .from("properties")
         .select("id")
         .eq("id", result.data.property_id)
-        .eq("landlord_id", session.user.id)
+        .eq("landlord_id", authUser.id)
         .single();
 
       if (propError || !property) {
-        console.log("Property check failed for landlord:", session.user.id, "Property:", result.data.property_id, "Error:", propError);
+        console.log("Property check failed for landlord:", authUser.id, "Property:", result.data.property_id, "Error:", propError);
         return NextResponse.json(
           { data: null, error: "Property not found or access denied" },
           { status: 403 }
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     }
 
     // Get the actual landlord_id for the slot
-    let slotLandlordId = session.user.id;
+    let slotLandlordId = authUser.id;
     if (role === "admin") {
         const { data: prop } = await supabase
             .from("properties")

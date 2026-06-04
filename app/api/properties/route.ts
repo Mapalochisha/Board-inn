@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const isLandlordView = searchParams.get("landlord") === "true";
 
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
   let query = supabase
     .from("properties")
@@ -32,10 +32,10 @@ export async function GET(request: Request) {
 
   // If landlord view, filter by ownership
   if (isLandlordView) {
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
-    query = query.eq("landlord_id", session.user.id);
+    query = query.eq("landlord_id", authUser.id);
   } else {
     // Public view: only published
     query = query.eq("status", "published");
@@ -112,9 +112,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json(
         { data: null, error: "Unauthorized" },
         { status: 401 }
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     }
 
     // Check role (Landlord or Admin)
-    const role = session.user.user_metadata?.role;
+    const role = authUser.user_metadata?.role;
     if (role !== "landlord" && role !== "admin") {
       return NextResponse.json(
         { data: null, error: "Forbidden - Landlord or Admin role required" },
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       .from("properties")
       .insert({
         ...result.data,
-        landlord_id: session.user.id,
+        landlord_id: authUser.id,
         status: result.data.status || "draft",
       })
       .select()

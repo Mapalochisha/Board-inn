@@ -11,25 +11,25 @@ export async function GET(request: Request) {
 
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
     // Get user role
-    let role = session.user.user_metadata?.role;
+    let role = authUser.user_metadata?.role;
     if (!role) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", session.user.id)
+        .eq("id", authUser.id)
         .single();
       role = profile?.role || "renter";
     }
 
-    console.log("GET /api/bookings - User:", session.user.id, "Role:", role);
+    console.log("GET /api/bookings - User:", authUser.id, "Role:", role);
 
     let query = supabase.from("viewing_bookings").select(`
       *,
@@ -54,13 +54,13 @@ export async function GET(request: Request) {
     if (role === "admin") {
       // Admins see everything
     } else if (role === "renter") {
-      query = query.eq("renter_id", session.user.id);
+      query = query.eq("renter_id", authUser.id);
     } else if (role === "landlord") {
       // Landlords see bookings for their properties
       const { data: ownedProperties } = await supabase
         .from("properties")
         .select("id")
-        .eq("landlord_id", session.user.id);
+        .eq("landlord_id", authUser.id);
 
       const propertyIds = ownedProperties?.map((p) => p.id) || [];
       console.log("Landlord owned property IDs:", propertyIds);
@@ -78,14 +78,14 @@ export async function GET(request: Request) {
       query = query.eq("status", status);
     }
 
-    const { data, error } = await query.order("slot(slot_date)", { ascending: false, foreignTable: "viewing_slots" });
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching bookings:", error);
       return NextResponse.json({ data: null, error: error.message }, { status: 500 });
     }
 
-    console.log(`Found ${data?.length || 0} bookings for user ${session.user.id}`);
+    console.log(`Found ${data?.length || 0} bookings for user ${authUser.id}`);
 
     // Manual sort if nested sort didn't work as expected
     const sortedData = [...(data || [])].sort((a: any, b: any) => {
@@ -104,15 +104,15 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
     // Role must be renter (Admins allowed for testing/support)
-    const role = session.user.user_metadata?.role || "renter";
+    const role = authUser.user_metadata?.role || "renter";
 
     if (role !== "renter" && role !== "admin") {
       return NextResponse.json({ data: null, error: "Only renters can book viewings" }, { status: 403 });
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
     const { count: existingSlotBooking, error: existingSlotError } = await supabase
       .from("viewing_bookings")
       .select("*", { count: "exact", head: true })
-      .eq("renter_id", session.user.id)
+      .eq("renter_id", authUser.id)
       .eq("slot_id", slot_id)
       .in("status", ["pending", "confirmed"]);
 
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
     const { count: sameDayBooking, error: sameDayError } = await supabase
       .from("viewing_bookings")
       .select("*, slot:viewing_slots!inner(*)", { count: "exact", head: true })
-      .eq("renter_id", session.user.id)
+      .eq("renter_id", authUser.id)
       .eq("property_id", property_id)
       .eq("slot.slot_date", slot.slot_date)
       .not("status", "in", '("declined","cancelled_by_renter","cancelled_by_landlord")');
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
     // Atomic claim and insert using RPC
     const { data: booking, error: bookingError } = await supabase.rpc("create_viewing_booking", {
       p_slot_id: slot_id,
-      p_renter_id: session.user.id,
+      p_renter_id: authUser.id,
       p_property_id: property_id,
       p_unit_id: unit_id,
       p_renter_notes: renter_notes,

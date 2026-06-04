@@ -10,10 +10,10 @@ export async function GET(
   try {
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -33,8 +33,8 @@ export async function GET(
     }
 
     // Check permission: renter's own or landlord's property
-    const isRenter = booking.renter_id === session.user.id;
-    const isLandlord = booking.property.landlord_id === session.user.id;
+    const isRenter = booking.renter_id === authUser.id;
+    const isLandlord = booking.property.landlord_id === authUser.id;
 
     if (!isRenter && !isLandlord) {
       return NextResponse.json({ data: null, error: "Forbidden" }, { status: 403 });
@@ -53,10 +53,10 @@ export async function PATCH(
   try {
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!authUser) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -86,8 +86,8 @@ export async function PATCH(
     }
 
     const { status, cancellation_reason } = result.data;
-    const isRenter = booking.renter_id === session.user.id;
-    const isLandlord = booking.property.landlord_id === session.user.id;
+    const isRenter = booking.renter_id === authUser.id;
+    const isLandlord = booking.property.landlord_id === authUser.id;
 
     let updatePayload: any = {
       status,
