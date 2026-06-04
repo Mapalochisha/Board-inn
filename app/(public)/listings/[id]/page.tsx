@@ -26,37 +26,52 @@ async function getProperty(id: string) {
     .is("deleted_at", null)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    if (error) console.error("Error fetching property:", error);
+    return null;
+  }
 
-  // Flatten amenities to match the previous API response format
+  // Flatten amenities safely
+  const amenities = Array.isArray(data.amenities) 
+    ? data.amenities.map((item: any) => item.amenity).filter(Boolean)
+    : [];
+
   return {
     ...data,
-    amenities: data.amenities.map((item: any) => item.amenity),
+    amenities,
+    units: data.units || [],
+    images: data.images || []
   };
-}
+  }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const property = await getProperty(params.id);
-  if (!property) return { title: "Listing Not Found — Board-inn" };
+  export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const property = await getProperty(params.id);
+    if (!property) return { title: "Listing Not Found — Board-inn" };
 
-  const title = `${property.title} — Board-inn`;
-  const description = property.description?.substring(0, 155) || "View this listing on Board-inn.";
+    const title = `${property.title} — Board-inn`;
+    const description = property.description?.substring(0, 155) || "View this listing on Board-inn.";
 
-  return {
-    title,
-    description,
-    openGraph: {
+    return {
       title,
       description,
-      images: property.cover_image_url ? [{ url: property.cover_image_url }] : [],
-    },
-  };
-}
+      openGraph: {
+        title,
+        description,
+        images: property.cover_image_url ? [{ url: property.cover_image_url }] : [],
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return { title: "Board-inn" };
+  }
+  }
 
-export default async function PropertyPage({ params }: { params: { id: string } }) {
+  export default async function PropertyPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
-  const { data: { user: authUser } } = await supabase.auth.getUser();
-  
+  const { data: authData } = await supabase.auth.getUser();
+  const authUser = authData?.user;
+
   let user = null;
   if (authUser) {
     const { data: profile } = await supabase
@@ -72,36 +87,37 @@ export default async function PropertyPage({ params }: { params: { id: string } 
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-10 space-y-12 pb-24">
-      <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border">
-        <Image 
-          src={property.cover_image_url || "/placeholder.jpg"} 
-          alt={`${property.title}, primary listing photo`} 
-          fill 
-          priority={true}
-          className="object-cover" 
-        />
-      </div>
+      <div className="space-y-4">
+        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border">
+          <Image 
+            src={property.cover_image_url || "/placeholder.jpg"} 
+            alt={`${property.title}, primary listing photo`} 
+            fill 
+            priority={true}
+            className="object-cover" 
+          />
+        </div>
 
-      {property.images && property.images.length > 1 && (
-        <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {property.images.map((url: string, i: number) => (
-              <div 
-                key={url} 
-                className="relative aspect-square rounded-xl overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => {/* Potential for a lightbox later */}}
-              >
-                <Image 
-                  src={url} 
-                  alt={`${property.title}, photo ${i + 1}`} 
-                  fill 
-                  className="object-cover" 
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {Array.isArray(property.images) && property.images.length > 1 && (
+          <section>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {property.images.map((url: string, i: number) => (
+                <div 
+                  key={`${url}-${i}`} 
+                  className="relative aspect-square rounded-xl overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
+                >
+                  <Image 
+                    src={url} 
+                    alt={`${property.title}, photo ${i + 1}`} 
+                    fill 
+                    className="object-cover" 
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
       
       <section>
         <h1 className="text-4xl font-extrabold mb-3 tracking-tight">{property.title}</h1>

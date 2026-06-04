@@ -33,10 +33,16 @@ export async function GET(
     );
   }
 
-  // Flatten amenities
+  // Flatten amenities safely
+  const amenities = Array.isArray(data.amenities) 
+    ? data.amenities.map((item: any) => item.amenity).filter(Boolean)
+    : [];
+
   const formattedData = {
     ...data,
-    amenities: data.amenities.map((item: any) => item.amenity),
+    amenities,
+    units: data.units || [],
+    images: data.images || []
   };
 
   return NextResponse.json({
