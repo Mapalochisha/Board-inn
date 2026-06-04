@@ -197,44 +197,54 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
 
   return (
     <div className="space-y-8 pb-20 md:pb-0">
-      {Object.entries(groupedSlots).map(([date, dateSlots]) => (
-        <div key={date} className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
-            <Calendar className="w-5 h-5" />
-            {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dateSlots.map((slot) => {
-              const remaining = slot.max_viewers - slot.current_viewers;
-              const isFull = remaining <= 0;
+      {Object.keys(groupedSlots).length > 0 ? (
+        Object.entries(groupedSlots).map(([date, dateSlots]) => (
+          <div key={date} className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+              <Calendar className="w-5 h-5" />
+              {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dateSlots.map((slot) => {
+                const remaining = slot.max_viewers - slot.current_viewers;
+                const isFull = remaining <= 0;
 
-              return (
-                <Card key={slot.id} className={`transition-all ${isFull ? 'bg-muted border-none opacity-60' : 'hover:border-green-600/50 hover:shadow-md'}`}>
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex justify-between items-start">
-                      <p className="font-bold text-lg">{formatSlotTime(slot.start_time, slot.end_time)}</p>
-                      {isFull && <span className="text-xs bg-muted-foreground/20 text-muted-foreground px-2 py-1 rounded-full uppercase tracking-wider font-semibold">Full</span>}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="w-4 h-4" />
-                      <span>{isFull ? 'Fully Booked' : `${remaining} spot(s) remaining`}</span>
-                    </div>
-                    {!isFull && (
-                      <Button 
-                        onClick={() => setSelectedSlot(slot)} 
-                        variant={selectedSlot?.id === slot.id ? 'default' : 'outline'}
-                        className={`w-full ${selectedSlot?.id === slot.id ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                      >
-                        {selectedSlot?.id === slot.id ? 'Selected' : 'Select'}
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                return (
+                  <Card key={slot.id} className={`transition-all ${isFull ? 'bg-muted border-none opacity-60' : 'hover:border-green-600/50 hover:shadow-md'}`}>
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <p className="font-bold text-lg">{formatSlotTime(slot.start_time, slot.end_time)}</p>
+                        {isFull && <span className="text-xs bg-muted-foreground/20 text-muted-foreground px-2 py-1 rounded-full uppercase tracking-wider font-semibold">Full</span>}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        <span>{isFull ? 'Fully Booked' : `${remaining} spot(s) remaining`}</span>
+                      </div>
+                      {!isFull && (
+                        <Button 
+                          onClick={() => setSelectedSlot(slot)} 
+                          variant={selectedSlot?.id === slot.id ? 'default' : 'outline'}
+                          className={`w-full ${selectedSlot?.id === slot.id ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                        >
+                          {selectedSlot?.id === slot.id ? 'Selected' : 'Select'}
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <Card className="border-dashed bg-muted/20">
+          <CardContent className="p-10 text-center">
+            <Calendar className="w-10 h-10 mx-auto text-muted-foreground mb-3 opacity-50" />
+            <p className="text-muted-foreground font-medium">No viewing slots currently available.</p>
+            <p className="text-xs text-muted-foreground mt-1">The landlord has not scheduled any upcoming viewing times for this property.</p>
+          </CardContent>
+        </Card>
+      )}
 
       {selectedSlot && (
         <Card className="border-green-600/20 bg-green-50 dark:bg-green-950/20 shadow-md mt-8">

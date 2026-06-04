@@ -16,13 +16,15 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
+  console.log(`Fetching slots for property ${propertyId} from date ${today}`);
 
   let query = supabase
     .from("viewing_slots")
     .select("*")
     .eq("property_id", propertyId)
     .in("status", ["available", "full"])
-    .gte("slot_date", new Date().toISOString().split("T")[0]);
+    .gte("slot_date", today);
 
   if (fromDate) {
     query = query.gte("slot_date", fromDate);
@@ -35,11 +37,14 @@ export async function GET(request: Request) {
   const { data, error } = await query.order("slot_date", { ascending: true }).order("start_time", { ascending: true });
 
   if (error) {
+    console.error("Error fetching slots from Supabase:", error);
     return NextResponse.json(
       { data: null, error: error.message },
       { status: 500 }
     );
   }
+
+  console.log(`Found ${data?.length || 0} slots for property ${propertyId}`);
 
   return NextResponse.json({
     data,
