@@ -16,8 +16,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user role from metadata (fastest)
-    const role = session.user.user_metadata?.role || "renter";
+    // Get user role
+    let role = session.user.user_metadata?.role;
+    if (!role) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+      role = profile?.role || "renter";
+    }
+
+    console.log("GET /api/bookings - User:", session.user.id, "Role:", role);
 
     let query = supabase.from("viewing_bookings").select(`
       *,
@@ -40,7 +50,7 @@ export async function GET(request: Request) {
     `);
 
     if (role === "admin") {
-      // Admins see everything, no filter
+      // Admins see everything
     } else if (role === "renter") {
       query = query.eq("renter_id", session.user.id);
     } else if (role === "landlord") {
@@ -51,6 +61,12 @@ export async function GET(request: Request) {
         .eq("landlord_id", session.user.id);
 
       const propertyIds = ownedProperties?.map((p) => p.id) || [];
+      console.log("Landlord owned property IDs:", propertyIds);
+      
+      if (propertyIds.length === 0) {
+        return NextResponse.json({ data: [], error: null });
+      }
+      
       query = query.in("property_id", propertyIds);
     } else {
       return NextResponse.json({ data: null, error: "Invalid role" }, { status: 403 });
@@ -63,8 +79,11 @@ export async function GET(request: Request) {
     const { data, error } = await query.order("slot(slot_date)", { ascending: false, foreignTable: "viewing_slots" });
 
     if (error) {
+      console.error("Error fetching bookings:", error);
       return NextResponse.json({ data: null, error: error.message }, { status: 500 });
     }
+
+    console.log(`Found ${data?.length || 0} bookings for user ${session.user.id}`);
 
     // Manual sort if nested sort didn't work as expected
     const sortedData = [...(data || [])].sort((a: any, b: any) => {
