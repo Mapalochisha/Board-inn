@@ -30,12 +30,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                let theme = localStorage.getItem('theme');
+                if (!theme) {
+                  const match = document.cookie.match(/theme=([^;]+)/);
+                  if (match) theme = match[1];
+                }
+                
+                let supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+                if (!theme || theme === 'system') {
+                  if (supportDarkMode) document.documentElement.classList.add('dark');
+                } else if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          storageKey="theme"
         >
           {children}
           <Toaster />
