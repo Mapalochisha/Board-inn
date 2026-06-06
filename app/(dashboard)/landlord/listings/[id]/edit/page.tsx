@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Plus, Trash2, Upload, ChevronRight, ChevronLeft, Check, Camera, ListChecks, Building2, MapPin, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
+import { useFormPersist } from '@/lib/hooks/useFormPersist';
+
 const STEPS = [
   { id: 1, title: 'Basic Info', icon: Building2 },
   { id: 2, title: 'Photos', icon: Camera },
@@ -38,7 +40,8 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [deletedUnitIds, setDeletedUnitIds] = useState<string[]>([]);
-  const [formData, setFormData] = useState<FormData>({
+  
+  const { values: formData, setValues: setFormData, clearPersisted } = useFormPersist<FormData>(`edit_property_${params.id}`, {
     title: '',
     description: '',
     address_line1: '',
@@ -63,7 +66,9 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
 
         setAmenities(amenJson.data || []);
         
-        if (propJson.data) {
+        // Only load from API if session storage is empty or we just mounted
+        const saved = sessionStorage.getItem(`form_persist_edit_property_${params.id}`);
+        if (!saved && propJson.data) {
           const p = propJson.data;
           setFormData({
             title: p.title || '',
@@ -86,7 +91,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, setFormData]);
 
   const updateField = (field: string, value: any) => setFormData((prev: any) => ({ ...prev, [field]: value }));
 
@@ -211,6 +216,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
       }
 
       toast.success('Listing updated successfully!', { id: toastId });
+      clearPersisted();
       router.push('/landlord/listings');
       router.refresh();
     } catch (error: any) {
