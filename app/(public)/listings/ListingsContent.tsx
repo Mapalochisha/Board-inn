@@ -25,6 +25,16 @@ export function ListingsContent() {
     gender_restriction: searchParams.get("gender_restriction") || "any",
   });
 
+  useEffect(() => {
+    setFilters({
+      city: searchParams.get("city") || "",
+      min_price: searchParams.get("min_price") || "",
+      max_price: searchParams.get("max_price") || "",
+      unit_type: searchParams.get("unit_type") || "any",
+      gender_restriction: searchParams.get("gender_restriction") || "any",
+    });
+  }, [searchParams]);
+
   const activeFilterCount = useMemo(() => {
     return Object.entries(filters).filter(([key, value]) => {
       if (key === "unit_type" || key === "gender_restriction") return value !== "any";
