@@ -19,7 +19,7 @@ export function HeroCarousel() {
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
-    router.push(`/listings?city=${encodeURIComponent(searchQuery.trim())}`);
+    router.push(`/listings?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -76,7 +76,7 @@ export function HeroCarousel() {
             <div className="flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20">
                 <input 
                     type="text" 
-                    placeholder="Enter city..." 
+                    placeholder="Search by city, title, or keywords..." 
                     className="flex-1 min-w-0 px-4 py-3 rounded-lg text-white bg-transparent border-none focus:ring-0 placeholder:text-white/60" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

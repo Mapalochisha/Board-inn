@@ -46,7 +46,7 @@ export async function GET(request: Request) {
   }
 
   if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,city.ilike.%${search}%`);
   }
 
   const { data, error } = await query;

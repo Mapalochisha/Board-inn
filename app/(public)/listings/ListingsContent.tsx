@@ -18,6 +18,7 @@ export function ListingsContent() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
+    search: searchParams.get("search") || "",
     city: searchParams.get("city") || "",
     min_price: searchParams.get("min_price") || "",
     max_price: searchParams.get("max_price") || "",
@@ -27,6 +28,7 @@ export function ListingsContent() {
 
   useEffect(() => {
     setFilters({
+      search: searchParams.get("search") || "",
       city: searchParams.get("city") || "",
       min_price: searchParams.get("min_price") || "",
       max_price: searchParams.get("max_price") || "",
@@ -45,6 +47,7 @@ export function ListingsContent() {
   const fetchProperties = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
+    if (filters.search) params.set("search", filters.search);
     if (filters.city) params.set("city", filters.city);
     if (filters.min_price) params.set("min_price", filters.min_price);
     if (filters.max_price) params.set("max_price", filters.max_price);
@@ -89,6 +92,7 @@ export function ListingsContent() {
             </h2>
             <button 
               onClick={() => updateFilters({
+                search: "",
                 city: "",
                 min_price: "",
                 max_price: "",
@@ -102,6 +106,19 @@ export function ListingsContent() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Search Keywords</Label>
+              <div className="relative">
+                <Input 
+                  placeholder="e.g. WiFi, Modern..." 
+                  value={filters.search} 
+                  onChange={e => updateFilters({...filters, search: e.target.value})} 
+                  className="rounded-xl border-2 pr-10"
+                />
+                <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Location</Label>
               <Input 
