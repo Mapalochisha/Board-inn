@@ -5,8 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { PropertyCardSkeleton } from "@/components/listings/PropertyCardSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, X as CloseIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export function ListingsContent() {
   const router = useRouter();
@@ -89,34 +93,61 @@ export function ListingsContent() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest opacity-50">Location</label>
-              <input placeholder="City" className="w-full border-2 p-3 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all" value={filters.city} onChange={e => updateFilters({...filters, city: e.target.value})} />
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Location</Label>
+              <Input 
+                placeholder="City" 
+                value={filters.city} 
+                onChange={e => updateFilters({...filters, city: e.target.value})} 
+                className="rounded-xl border-2"
+              />
             </div>
             
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest opacity-50">Price Range</label>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Price Range</Label>
               <div className="flex gap-2">
-                <input placeholder="Min" type="number" className="w-1/2 border-2 p-3 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all" value={filters.min_price} onChange={e => updateFilters({...filters, min_price: e.target.value})} />
-                <input placeholder="Max" type="number" className="w-1/2 border-2 p-3 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all" value={filters.max_price} onChange={e => updateFilters({...filters, max_price: e.target.value})} />
+                <Input 
+                  placeholder="Min" 
+                  type="number" 
+                  value={filters.min_price} 
+                  onChange={e => updateFilters({...filters, min_price: e.target.value})} 
+                  className="w-1/2 rounded-xl border-2"
+                />
+                <Input 
+                  placeholder="Max" 
+                  type="number" 
+                  value={filters.max_price} 
+                  onChange={e => updateFilters({...filters, max_price: e.target.value})} 
+                  className="w-1/2 rounded-xl border-2"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest opacity-50">Unit Type</label>
-              <select value={filters.unit_type} onChange={e => updateFilters({...filters, unit_type: e.target.value})} className="w-full border-2 p-3 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all bg-white">
-                  <option value="any">Any Unit Type</option>
-                  <option value="full_room">Full Room</option>
-                  <option value="bed_space">Bed Space</option>
-              </select>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Unit Type</Label>
+              <Select value={filters.unit_type} onValueChange={val => updateFilters({...filters, unit_type: val})}>
+                <SelectTrigger className="rounded-xl border-2 bg-white dark:bg-background">
+                  <SelectValue placeholder="Any Unit Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any Unit Type</SelectItem>
+                  <SelectItem value="full_room">Full Room</SelectItem>
+                  <SelectItem value="bed_space">Bed Space</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest opacity-50">Preference</label>
-              <select value={filters.gender_restriction} onChange={e => updateFilters({...filters, gender_restriction: e.target.value})} className="w-full border-2 p-3 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all bg-white">
-                  <option value="any">Any Gender</option>
-                  <option value="male">Male Only</option>
-                  <option value="female">Female Only</option>
-              </select>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-50">Preference</Label>
+              <Select value={filters.gender_restriction} onValueChange={val => updateFilters({...filters, gender_restriction: val})}>
+                <SelectTrigger className="rounded-xl border-2 bg-white dark:bg-background">
+                  <SelectValue placeholder="Any Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any Gender</SelectItem>
+                  <SelectItem value="male">Male Only</SelectItem>
+                  <SelectItem value="female">Female Only</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </aside>

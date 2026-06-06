@@ -37,6 +37,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<any[]>([]);
+  const [deletedUnitIds, setDeletedUnitIds] = useState<string[]>([]);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -136,6 +137,10 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   };
 
   const removeUnit = (index: number) => {
+    const unitToRemove = formData.units[index];
+    if (unitToRemove?.id) {
+      setDeletedUnitIds(prev => [...prev, unitToRemove.id]);
+    }
     updateField('units', formData.units.filter((_: any, i: number) => i !== index));
   };
 
@@ -196,6 +201,13 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
             body: JSON.stringify(mappedUnit)
           });
         }
+      }
+
+      // 4. Delete removed units
+      for (const unitId of deletedUnitIds) {
+        await fetch(`/api/units/${unitId}`, {
+          method: 'DELETE'
+        });
       }
 
       toast.success('Listing updated successfully!', { id: toastId });

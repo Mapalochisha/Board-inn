@@ -5,20 +5,42 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Building2, Eye, Calendar, Pencil } from 'lucide-react';
+import { PlusCircle, Building2, Eye, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { EmptyState } from '@/components/shared/EmptyState';
 
 export default function LandlordListingsPage() {
   const [properties, setProperties] = useState<any[]>([]);
 
-  useEffect(() => {
+  const fetchProperties = () => {
     fetch('/api/properties?landlord=true')
       .then((res) => res.json())
       .then((json) => {
         setProperties(json.data || []);
       });
+  };
+
+  useEffect(() => {
+    fetchProperties();
   }, []);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"? This will archive the listing.`)) return;
+
+    try {
+      const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Listing archived successfully');
+        fetchProperties();
+      } else {
+        const error = await res.json();
+        toast.error(error.error || 'Failed to delete listing');
+      }
+    } catch (err) {
+      toast.error('An error occurred while deleting the listing');
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
@@ -83,6 +105,14 @@ export default function LandlordListingsPage() {
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/landlord/listings/${p.id}/slots`}><Calendar className="w-4 h-4" /></Link>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDelete(p.id, p.title)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

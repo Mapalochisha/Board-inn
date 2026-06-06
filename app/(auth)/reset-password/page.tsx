@@ -19,9 +19,9 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/forgot-password");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
       }
     };
     checkSession();
