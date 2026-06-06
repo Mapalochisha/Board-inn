@@ -81,11 +81,12 @@ export default function ManageSlotsPage({ params }: { params: { id: string } }) 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Creation Form */}
-        <Card className="lg:col-span-1 h-fit sticky top-24">
-          <CardHeader>
-            <CardTitle>Create New Slot</CardTitle>
-            <CardDescription>Add a new time window for viewings.</CardDescription>
-          </CardHeader>
+        <div className="lg:col-span-1">
+          <Card className="h-fit lg:sticky lg:top-24">
+            <CardHeader>
+              <CardTitle>Create New Slot</CardTitle>
+              <CardDescription>Add a new time window for viewings.</CardDescription>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
@@ -139,8 +140,9 @@ export default function ManageSlotsPage({ params }: { params: { id: string } }) 
             </form>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Slots List */}
+      {/* Slots List */}
         <div className="lg:col-span-2 space-y-4">
           {slots.length === 0 ? (
             <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
