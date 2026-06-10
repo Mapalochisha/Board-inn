@@ -49,10 +49,8 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      console.log('ViewingSlotPicker client-side auth check:', authUser);
       
       if (authUser && !currentUser) {
-        console.log('User found on client but not from server, fetching profile...');
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -60,10 +58,8 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
           .single();
         
         if (profile) {
-          console.log('Profile found on client:', profile);
           setCurrentUser(profile);
         } else {
-          console.log('Profile not found on client, using auth user metadata');
           setCurrentUser(authUser);
         }
       }
@@ -72,7 +68,6 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
     checkUser();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed in ViewingSlotPicker:', _event, session?.user);
       if (session?.user) {
         // We might want to fetch profile here too, but for now just setting auth user
         // to avoid incorrect "not logged in" state.
@@ -89,16 +84,13 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
 
   useEffect(() => {
     if (!isLoggedIn) {
-      console.log('Not logged in, skipping slots fetch');
       setLoading(false);
       return;
     }
 
-    console.log('Fetching slots for property:', propertyId);
     fetch(`/api/viewing-slots?property_id=${propertyId}`)
       .then((res) => res.json())
       .then((json) => {
-        console.log('Fetched slots:', json.data);
         setSlots(json.data || []);
         setLoading(false);
       })
@@ -177,9 +169,7 @@ export function ViewingSlotPicker({ propertyId, units, user: initialUser }: View
       }),
     });
 
-    console.log('Booking response status:', res.status);
     const result = await res.json();
-    console.log('Booking response body:', result);
 
     if (res.status === 201) {
       toast.success('Booking confirmed! Check your dashboard.');

@@ -29,7 +29,6 @@ export async function GET(request: Request) {
       role = profile?.role || "renter";
     }
 
-    console.log("GET /api/bookings - User:", authUser.id, "Role:", role);
 
     let query = supabase.from("viewing_bookings").select(`
       *,
@@ -63,7 +62,6 @@ export async function GET(request: Request) {
         .eq("landlord_id", authUser.id);
 
       const propertyIds = ownedProperties?.map((p) => p.id) || [];
-      console.log("Landlord owned property IDs:", propertyIds);
       
       if (propertyIds.length === 0) {
         return NextResponse.json({ data: [], error: null });
@@ -85,7 +83,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: null, error: error.message }, { status: 500 });
     }
 
-    console.log(`Found ${data?.length || 0} bookings for user ${authUser.id}`);
 
     // Manual sort if nested sort didn't work as expected
     const sortedData = [...(data || [])].sort((a: any, b: any) => {
@@ -119,11 +116,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    console.log("POST /api/bookings request body:", body);
     const result = createBookingSchema.safeParse(body);
     
     if (!result.success) {
-      console.log("Validation failed:", result.error.format());
       return NextResponse.json(
         { data: null, error: result.error.issues[0].message },
         { status: 400 }

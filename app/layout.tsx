@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Board-inn Team" }],
   creator: "Board-inn",
   publisher: "Board-inn",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   formatDetection: {
     email: false,
     address: false,
