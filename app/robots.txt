@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /landlord
+
+Sitemap: https://board-inn.vercel.app/sitemap.xml

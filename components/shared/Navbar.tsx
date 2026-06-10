@@ -14,12 +14,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Session } from "@supabase/supabase-js";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Navbar() {
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,7 +29,10 @@ export default function Navbar() {
       if (user) {
         supabase.auth.getSession().then(({ data: { session } }) => {
           setSession(session);
+          setLoading(false);
         });
+      } else {
+        setLoading(false);
       }
     });
 
@@ -35,6 +40,7 @@ export default function Navbar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -80,7 +86,12 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
 
-            {session ? (
+            {loading ? (
+              <div className="hidden md:flex items-center gap-3">
+                <Skeleton className="h-8 w-20 rounded-lg" />
+                <Skeleton className="h-8 w-24 rounded-lg" />
+              </div>
+            ) : session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">

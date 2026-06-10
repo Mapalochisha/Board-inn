@@ -6,9 +6,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 const DEFAULT_IMAGES = [
-  "https://images.unsplash.com/photo-1555854817-40e098ee7fdd?auto=format&fit=crop&q=80&w=2000",
-  "https://images.unsplash.com/photo-1522770179533-24471fcdba45?auto=format&fit=crop&q=80&w=2000",
-  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=2000",
+  "https://images.unsplash.com/photo-1555854817-40e098ee7fdd?auto=format&fit=crop&q=80&w=1600",
+  "https://images.unsplash.com/photo-1522770179533-24471fcdba45?auto=format&fit=crop&q=80&w=1600",
+  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=1600",
 ];
 
 export function HeroCarousel() {
@@ -33,7 +33,14 @@ export function HeroCarousel() {
       .then((res) => res.json())
       .then((data) => {
         if (data.data && data.data.length > 0) {
-          setImages(data.data);
+          // Optimize dynamic Unsplash URLs if possible
+          const optimized = data.data.map((url: string) => {
+             if (url.includes('unsplash.com')) {
+                return url.split('?')[0] + '?auto=format&fit=crop&q=80&w=1600';
+             }
+             return url;
+          });
+          setImages(optimized);
         }
       })
       .catch(() => {
@@ -50,19 +57,20 @@ export function HeroCarousel() {
   }, [images.length]);
 
   return (
-    <section className="relative h-[600px] w-full overflow-hidden">
+    <section className="relative h-[600px] w-full overflow-hidden bg-slate-900">
       {/* Images */}
       {images.map((img, i) => (
         <div
-          key={i}
+          key={`${img}-${i}`}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
             i === current ? "opacity-100" : "opacity-0"
           }`}
         >
           <Image
             src={img}
-            alt={`Hero ${i}`}
+            alt={`Student accommodation backdrop ${i + 1}`}
             fill
+            sizes="100vw"
             className="object-cover"
             priority={i === 0}
           />
